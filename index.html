@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dashboard SK Melekek - NFC</title>
+    <title>Dashboard SK Melekek - NFC Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
@@ -22,9 +21,9 @@
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #f0f2f5;
-            margin: 0;
-            padding: 10px;
+            margin: 0; padding: 10px;
             color: var(--dark);
+            -webkit-tap-highlight-color: transparent;
         }
 
         .header {
@@ -37,8 +36,6 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .header h1 { margin: 0; font-size: 1.4rem; }
-
         .card {
             background: white;
             border-radius: 15px;
@@ -47,13 +44,10 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
-        .nfc-status {
-            background: var(--warning);
-            font-size: 0.8rem;
+        .nfc-section {
+            background: #fff9db;
+            border: 1px solid #ffe066;
             text-align: center;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 15px;
         }
 
         .reg-box {
@@ -79,86 +73,73 @@
             color: white;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             width: 100%;
+            transition: transform 0.1s;
         }
 
+        .btn:active { transform: scale(0.98); }
         .btn-primary { background: var(--primary); }
         .btn-merit { background: var(--success); flex: 1; }
         .btn-demerit { background: var(--danger); flex: 1; }
-        .btn-edit { background: var(--dark); padding: 5px 10px; font-size: 0.7rem; width: auto; }
+        .btn-edit { background: var(--dark); padding: 5px 12px; font-size: 0.7rem; width: auto; }
 
-        .murid-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-            padding: 15px 0;
-        }
-
-        .action-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
+        .action-row { display: flex; gap: 10px; margin-top: 12px; }
         .markah-badge {
             background: var(--dark);
             color: white;
-            padding: 2px 10px;
+            padding: 4px 12px;
             border-radius: 20px;
-            font-size: 0.8rem;
-        }
-
-        /* Modal Edit */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 400px;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
 
         #cari {
             position: sticky;
             top: 10px;
             z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%; max-width: 400px;
         }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>SK MELEKEK</h1>
-    <p>Mobile Dashboard Guru</p>
+    <h1 style="margin:0; font-size:1.5rem;">SK MELEKEK</h1>
+    <p style="margin:5px 0 0; font-size:0.8rem; opacity:0.9;">Sistem Merit-Demerit Digital</p>
 </div>
 
-<div class="card" style="background: #fff3cd; border: 1px solid #ffeeba;">
-    <button class="btn btn-primary" onclick="mulaNFC()">📲 AKTIFKAN NFC PHONE</button>
-    <p id="nfcStatus" style="font-size: 0.7rem; text-align: center; margin-top: 5px; color: #856404;">
-        Tekan butang di atas untuk guna NFC telefon anda.
+<div class="card nfc-section">
+    <button class="btn btn-primary" id="btnNFC" onclick="mulaNFC()">📲 AKTIFKAN NFC PHONE</button>
+    <p id="nfcStatus" style="font-size: 0.75rem; margin-top: 8px; color: #856404; line-height: 1.4;">
+        Tekan butang untuk mula imbas kad murid.
     </p>
 </div>
 
 <div id="pendaftaranBox" class="card reg-box">
-    <h3 style="margin-top:0; color:var(--primary);">✨ Kad Baru Dikesan!</h3>
-    <p style="font-size: 0.8rem;">UID: <span id="newUid"></span></p>
+    <h3 style="margin:0 0 10px; color:var(--primary); font-size:1rem;">✨ Kad Baru Dikesan</h3>
+    <p style="font-size: 0.75rem; margin-bottom:10px;">UID: <b id="newUid"></b></p>
     <input type="text" id="regNama" placeholder="Nama Penuh Pelajar">
-    <input type="text" id="regKelas" placeholder="Kelas">
-    <button class="btn btn-primary" onclick="simpanMurid()">DAFTAR SEKARANG</button>
+    <input type="text" id="regKelas" placeholder="Kelas (Contoh: 6 Bijak)">
+    <button class="btn btn-primary" onclick="simpanMurid()">DAFTAR PELAJAR</button>
 </div>
 
 <input type="text" id="cari" placeholder="🔍 Cari nama murid..." onkeyup="filterMurid()">
@@ -170,9 +151,11 @@
     <div class="modal-content">
         <h3 style="margin-top:0">Kemaskini Pelajar</h3>
         <input type="hidden" id="editUid">
-        <input type="text" id="editNama" placeholder="Nama">
-        <input type="text" id="editKelas" placeholder="Kelas">
-        <div style="display:flex; gap:10px; margin-top:10px;">
+        <label style="font-size:0.7rem">Nama:</label>
+        <input type="text" id="editNama">
+        <label style="font-size:0.7rem">Kelas:</label>
+        <input type="text" id="editKelas">
+        <div class="action-row">
             <button class="btn btn-primary" onclick="simpanEdit()">SIMPAN</button>
             <button class="btn btn-demerit" onclick="tutupModal()">BATAL</button>
         </div>
@@ -195,23 +178,21 @@
 
     let semuaMurid = [];
 
-    // --- 1. PANTAU KAD BARU DARI ESP32 ---
+    // Pantau pendaftaran baru dari ESP32
     db.ref('temp_pendaftaran/uid_baru').on('value', s => {
         const uid = s.val();
         document.getElementById('pendaftaranBox').style.display = uid ? 'block' : 'none';
         document.getElementById('newUid').innerText = uid;
     });
 
-    // --- 2. AMBIL DATA & AUTO-UPDATE TOP 3 ---
+    // Ambil data murid & update TOP 3
     db.ref('pelajar').on('value', s => {
         const data = s.val();
         semuaMurid = [];
         for(let id in data) { semuaMurid.push({uid:id, ...data[id]}); }
-        
-        // Susun markah tertinggi
         semuaMurid.sort((a,b) => b.markah - a.markah);
 
-        // Update Folder TOP3 untuk ESP32 (Sangat Penting!)
+        // Update Folder TOP3 untuk ESP32 secara senyap
         const top3Obj = {};
         semuaMurid.slice(0, 3).forEach((m, i) => {
             top3Obj[`rank${i+1}`] = { nama: m.nama.substring(0, 12), markah: m.markah };
@@ -221,50 +202,71 @@
         paparMurid(semuaMurid);
     });
 
-    // --- 3. FUNGSI NFC TELEFON (ANDROID CHROME) ---
+    // --- FUNGSI NFC PHONE (OPTIMIZED) ---
     async function mulaNFC() {
         const status = document.getElementById('nfcStatus');
+        const btn = document.getElementById('btnNFC');
+
         if ('NDEFReader' in window) {
             try {
                 const ndef = new NDEFReader();
                 await ndef.scan();
-                status.innerText = "✅ NFC AKTIF! Sentuh kad pada belakang phone anda.";
+                
+                status.innerHTML = "✅ <b>NFC AKTIF!</b><br>Sentuh kad pada belakang telefon.";
+                status.style.color = "green";
+                btn.style.background = "var(--success)";
+                btn.innerText = "NFC SEDANG BERJALAN...";
+
                 ndef.onreading = event => {
                     const uid = event.serialNumber.replace(/:/g, "").toUpperCase();
-                    // Automatik cari murid mengikut UID yang diimbas phone
                     const murid = semuaMurid.find(m => m.uid === uid);
+                    
+                    // Bergetar sedikit bila baca kad
+                    if (navigator.vibrate) navigator.vibrate(100);
+
                     if(murid) {
                         document.getElementById('cari').value = murid.nama;
                         filterMurid();
-                        alert("Pelajar Ditemui: " + murid.nama);
+                        status.innerHTML = "✅ <b>Ditemui:</b> " + murid.nama;
+                        status.style.color = "blue";
+                        
+                        // Reset status mesej selepas 3 saat
+                        setTimeout(() => {
+                            status.innerHTML = "✅ <b>NFC AKTIF!</b><br>Sentuh kad seterusnya...";
+                            status.style.color = "green";
+                        }, 3000);
+
                     } else {
-                        alert("Kad belum daftar! UID: " + uid);
+                        status.innerHTML = "⚠️ <b>Kad Tidak Dikenali!</b><br>UID: " + uid;
+                        status.style.color = "orange";
                         db.ref('temp_pendaftaran/uid_baru').set(uid);
                     }
                 };
-            } catch (error) { status.innerText = "❌ Ralat NFC: " + error; }
+            } catch (error) {
+                status.innerText = "❌ Ralat: " + error.message;
+            }
         } else {
-            alert("Maaf, phone/browser anda tidak menyokong NFC Web.");
+            alert("Phone/Browser anda tidak menyokong NFC Web (Guna Chrome di Android).");
         }
     }
 
-    // --- 4. FUNGSI PAPARAN ---
+    // --- FUNGSI UI ---
     function paparMurid(arr) {
         const container = document.getElementById('senaraiMurid');
         container.innerHTML = "";
         arr.forEach((m, index) => {
             container.innerHTML += `
                 <div class="card">
-                    <div style="display:flex; justify-content:space-between;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div>
-                            <div style="font-weight:600; color:var(--primary);">${index+1}. ${m.nama}</div>
-                            <div style="font-size:0.7rem; color:#666;">${m.kelas} | UID: ${m.uid}</div>
+                            <div style="font-weight:600; color:var(--primary); font-size:1rem;">${index+1}. ${m.nama}</div>
+                            <div style="font-size:0.7rem; color:#666; margin-top:2px;">${m.kelas} | UID: ${m.uid}</div>
                         </div>
                         <div class="markah-badge">${m.markah} pt</div>
                     </div>
                     <div class="action-row">
-                        <button class="btn btn-merit" onclick="updateSkor('${m.uid}', 5)">+5</button>
-                        <button class="btn btn-demerit" onclick="updateSkor('${m.uid}', -5)">-5</button>
+                        <button class="btn btn-merit" onclick="updateSkor('${m.uid}', 5)">+5 Merit</button>
+                        <button class="btn btn-demerit" onclick="updateSkor('${m.uid}', -5)">-5 Demerit</button>
                         <button class="btn btn-edit" onclick="bukaModal('${m.uid}','${m.nama}','${m.kelas}')">EDIT</button>
                     </div>
                 </div>`;
@@ -289,10 +291,10 @@
             db.ref('pelajar/'+uid).set({nama, kelas, markah:100});
             db.ref('temp_pendaftaran/uid_baru').set("");
             document.getElementById('regNama').value = "";
+            document.getElementById('regKelas').value = "";
         }
     }
 
-    // --- 5. FUNGSI EDIT ---
     function bukaModal(uid, nama, kelas) {
         document.getElementById('editUid').value = uid;
         document.getElementById('editNama').value = nama;
