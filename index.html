@@ -23,40 +23,28 @@
         .nav-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; background: white; padding: 10px; border-radius: 10px; }
         .btn-back { background: var(--dark); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; }
 
-        /* Item Murid */
-        .murid-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 2px solid #eee; transition: background-color 0.2s; overflow: hidden; }
+        .murid-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 2px solid #eee; transition: all 0.2s; }
         
-        /* Kesan Warna Flash */
         .flash-hijau { background-color: var(--success) !important; color: white !important; border-color: #27ae60 !important; }
         .flash-merah { background-color: var(--danger) !important; color: white !important; border-color: #d63031 !important; }
 
-        /* Butang Aksi - Ditambah Touch-Action untuk elak ralat skrol */
-        .btn-aksi { 
-            padding: 15px; 
-            border: none; 
-            border-radius: 10px; 
-            color: white; 
-            font-weight: 700; 
-            flex: 1; 
-            font-size: 1rem; 
-            touch-action: manipulation; 
-            cursor: pointer;
-            -webkit-user-select: none;
-            user-select: none;
-        }
+        .btn-aksi { padding: 15px; border: none; border-radius: 10px; color: white; font-weight: 700; flex: 1; font-size: 1rem; touch-action: manipulation; cursor: pointer; }
+        .btn-edit-small { background: #eee; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; color: #555; cursor: pointer; }
 
         .btn-save { background: var(--primary); width: 100%; margin-top: 15px; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 700; }
+        .btn-delete { background: white; width: 100%; margin-top: 10px; color: var(--danger); border: 2px solid var(--danger); padding: 10px; border-radius: 10px; font-weight: 600; }
+        
         .markah-badge { background: var(--dark); color: white; padding: 5px 12px; border-radius: 8px; font-weight: 700; }
         .btn-nfc-main { background: var(--warning); color: black; width: 100%; padding: 18px; border-radius: 20px; font-weight: 800; border: none; margin-bottom: 15px; font-size: 1.1rem; box-shadow: 0 4px 0 #d4ac0d; }
         
-        input, select { width: 100%; padding: 15px; margin-bottom: 10px; border: 2px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 1rem; font-family: 'Poppins'; }
+        input, select { width: 100%; padding: 15px; margin-bottom: 10px; border: 2px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 1rem; }
     </style>
 </head>
 <body>
 
 <div class="header">
     <h2 style="margin:0">SK MELEKEK</h2>
-    <small>Versi Skrol Selamat</small>
+    <small>Pengurusan Merit v3.0</small>
 </div>
 
 <div id="menuUtama">
@@ -86,7 +74,7 @@
 <div id="daftarView">
     <div class="nav-header">
         <button class="btn-back" onclick="kembali()">⬅️ KEMBALI</button>
-        <h3 style="margin:0; color: var(--danger);">DAFTAR MURID</h3>
+        <h3 id="labelDaftar" style="margin:0; color: var(--danger);">DAFTAR MURID</h3>
     </div>
     <div style="background: white; padding: 20px; border-radius: 15px; border: 2px solid #eee;">
         <input type="text" id="regUid" placeholder="ID Kad" readonly style="background: #f1f1f1;">
@@ -96,7 +84,8 @@
             <option value="1">Tahun 1</option><option value="2">Tahun 2</option><option value="3">Tahun 3</option>
             <option value="4">Tahun 4</option><option value="5">Tahun 5</option><option value="6">Tahun 6</option>
         </select>
-        <button class="btn-save" onclick="simpanMurid()">SIMPAN</button>
+        <button class="btn-save" id="btnSave" onclick="simpanMurid()">SIMPAN</button>
+        <button class="btn-delete" id="btnPadam" style="display:none;" onclick="padamMurid()">🗑️ PADAM MURID</button>
     </div>
 </div>
 
@@ -124,20 +113,16 @@
     function carianGlobal() {
         const keyword = document.getElementById('cariUtama').value.trim();
         if(keyword.length > 0) {
-            modeCarianGlobal = true;
-            tahunDipilih = null;
+            modeCarianGlobal = true; tahunDipilih = null;
             document.getElementById('folderContainer').style.display = 'none';
             document.getElementById('senaraiView').style.display = 'block';
             document.getElementById('labelTahun').innerText = "HASIL CARIAN";
             reRender();
-        } else {
-            kembali();
-        }
+        } else { kembali(); }
     }
 
     function pilihTahun(t) {
-        tahunDipilih = t;
-        modeCarianGlobal = false;
+        tahunDipilih = t; modeCarianGlobal = false;
         document.getElementById('menuUtama').style.display = 'none';
         document.getElementById('senaraiView').style.display = 'block';
         document.getElementById('labelTahun').innerText = "TAHUN " + t;
@@ -145,8 +130,7 @@
     }
 
     function kembali() {
-        tahunDipilih = null;
-        modeCarianGlobal = false;
+        tahunDipilih = null; modeCarianGlobal = false;
         document.getElementById('cariUtama').value = "";
         document.getElementById('menuUtama').style.display = 'block';
         document.getElementById('folderContainer').style.display = 'grid';
@@ -158,24 +142,19 @@
         const container = document.getElementById('muridContainer');
         const carian = document.getElementById('cariUtama').value.toLowerCase();
         container.innerHTML = "";
-
-        let filtered = [];
-        if(modeCarianGlobal) {
-            filtered = databaseMurid.filter(m => m.nama.toLowerCase().includes(carian));
-        } else {
-            filtered = databaseMurid.filter(m => parseInt(m.tahun) === tahunDipilih);
-        }
-
+        let filtered = modeCarianGlobal ? databaseMurid.filter(m => m.nama.toLowerCase().includes(carian)) : databaseMurid.filter(m => parseInt(m.tahun) === tahunDipilih);
         filtered.sort((a, b) => b.markah - a.markah);
-
         filtered.forEach(m => {
             const div = document.createElement('div');
             div.className = 'murid-item';
             div.id = `card-${m.uid}`;
             div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start">
                     <div><b>${m.nama}</b><br><small>T${m.tahun} | ${m.uid}</small></div>
-                    <div class="markah-badge">${m.markah}</div>
+                    <div style="text-align:right">
+                        <div class="markah-badge">${m.markah}</div><br>
+                        <button class="btn-edit-small" onclick="bukaEdit('${m.uid}')">✏️ Edit</button>
+                    </div>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:12px;">
                     <button class="btn-aksi" style="background:var(--success)" onclick="aksiMarkah('${m.uid}', 5)">+5</button>
@@ -187,21 +166,37 @@
     }
 
     function aksiMarkah(uid, pts) {
-        // Hanya bergetar dan simpan jika benar-benar "Klik"
         if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
         const el = document.getElementById(`card-${uid}`);
         const kelas = pts > 0 ? 'flash-hijau' : 'flash-merah';
-        
         el.classList.add(kelas);
         db.ref('pelajar/' + uid + '/markah').transaction(cur => (cur || 0) + pts);
-        
         setTimeout(() => { if(el) el.classList.remove(kelas); }, 500);
     }
 
     function bukaPendaftaran(uid = "") {
         document.getElementById('menuUtama').style.display = 'none';
+        document.getElementById('senaraiView').style.display = 'none';
         document.getElementById('daftarView').style.display = 'block';
-        if(uid) document.getElementById('regUid').value = uid;
+        document.getElementById('labelDaftar').innerText = "DAFTAR BARU";
+        document.getElementById('btnPadam').style.display = 'none';
+        document.getElementById('regUid').value = uid;
+        document.getElementById('regNama').value = "";
+        document.getElementById('regTahun').value = "";
+    }
+
+    function bukaEdit(uid) {
+        const murid = databaseMurid.find(m => m.uid === uid);
+        if(murid) {
+            document.getElementById('menuUtama').style.display = 'none';
+            document.getElementById('senaraiView').style.display = 'none';
+            document.getElementById('daftarView').style.display = 'block';
+            document.getElementById('labelDaftar').innerText = "EDIT MAKLUMAT";
+            document.getElementById('btnPadam').style.display = 'block';
+            document.getElementById('regUid').value = murid.uid;
+            document.getElementById('regNama').value = murid.nama;
+            document.getElementById('regTahun').value = murid.tahun;
+        }
     }
 
     function simpanMurid() {
@@ -209,7 +204,14 @@
         const nama = document.getElementById('regNama').value.toUpperCase().trim();
         const tahun = document.getElementById('regTahun').value;
         if(uid && nama && tahun) {
-            db.ref('pelajar/' + uid).set({ nama, tahun, markah: 100 }).then(() => { kembali(); });
+            db.ref('pelajar/' + uid).update({ nama, tahun }).then(() => { kembali(); });
+        } else { alert("Lengkapkan nama dan tahun!"); }
+    }
+
+    function padamMurid() {
+        const uid = document.getElementById('regUid').value;
+        if(confirm("Padam murid ini secara kekal?")) {
+            db.ref('pelajar/' + uid).remove().then(() => { kembali(); });
         }
     }
 
@@ -222,12 +224,8 @@
                 ndef.onreading = event => {
                     const idScan = event.serialNumber.replace(/:/g, "").toUpperCase();
                     const murid = databaseMurid.find(x => x.uid === idScan);
-                    if(murid) {
-                        pilihTahun(parseInt(murid.tahun));
-                    } else {
-                        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                        bukaPendaftaran(idScan);
-                    }
+                    if(murid) { pilihTahun(parseInt(murid.tahun)); } 
+                    else { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); bukaPendaftaran(idScan); }
                 };
             } catch (e) { console.log("NFC Error"); }
         }
