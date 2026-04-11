@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistem Pintar SK Melekek v23</title>
+    <title>Sistem Pintar SK Melekek v23.1</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -29,30 +29,27 @@
         .btn-aksi { padding: 14px; border: none; border-radius: 15px; color: white; font-weight: 700; flex: 1; cursor: pointer; font-size: 0.85rem; touch-action: manipulation; }
         .badge-skor { background: var(--dark); color: white; padding: 8px 15px; border-radius: 12px; font-weight: 800; }
         
-        /* Statistik Style */
         .stats-banner { background: var(--dark); color: white; padding: 12px 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
 
-        /* Table & Tick */
         table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
         td { background: white; padding: 12px; border-radius: 15px; }
         .no-bil { width: 30px; font-weight: 700; color: #ccc; font-size: 0.8rem; }
-        .btn-tick { padding: 12px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; width: 100%; }
+        .btn-tick { padding: 12px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; width: 100%; transition: background 0.2s; }
         .btn-hadir { background: var(--success) !important; color: white !important; }
         .btn-tidak { background: #f0f2f5 !important; color: #b0b0b0 !important; }
 
-        /* Popups */
         #nfcPopup, #formView { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; padding: 30px 20px; box-sizing: border-box; overflow-y: auto; }
-        #nfcPopup { background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; }
+        #nfcPopup { background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); align-items: center; justify-content: center; }
         .nfc-card { background: white; width: 100%; border-radius: 30px; padding: 30px; text-align: center; max-width: 400px; }
         
-        input[type="text"], select { width: 100%; padding: 16px; border-radius: 16px; border: 2px solid #eee; margin-bottom: 15px; font-family: inherit; }
+        input[type="text"], input[type="date"], select { width: 100%; padding: 16px; border-radius: 16px; border: 2px solid #eee; margin-bottom: 15px; font-family: inherit; font-size: 1rem; }
     </style>
 </head>
 <body>
 
 <div class="top-bar">
     <h2>SK MELEKEK</h2>
-    <p style="margin:5px 0 0 0; opacity:0.8; font-size:0.85rem;">Sistem Pengurusan Pintar v23</p>
+    <p style="margin:5px 0 0 0; opacity:0.8; font-size:0.85rem;">Sistem Pengurusan Pintar v23.1</p>
 </div>
 
 <div class="search-container">
@@ -129,6 +126,7 @@
         <input type="checkbox" id="regRMT" style="width:22px; height:22px;"> <label for="regRMT">Murid Layak RMT</label>
     </div>
     <button class="btn-aksi" style="background:var(--primary); width:100%; padding:20px;" onclick="simpanData()">SIMPAN REKOD</button>
+    <button id="btnPadam" class="btn-aksi" style="background:var(--danger); width:100%; margin-top:15px; display:none;" onclick="padamMurid()">PADAM REKOD</button>
 </div>
 
 <script>
@@ -144,16 +142,18 @@
     let databaseMurid = [];
     let currentNfcUid = "";
     let isScrolling = false;
+    let curTahun = "", curKelas = "";
 
-    // Detection for scrolling to prevent accidental clicks
     window.addEventListener('touchstart', () => isScrolling = false);
     window.addEventListener('touchmove', () => isScrolling = true);
 
+    // Build Grid Kelas
     const grid = document.getElementById('gridKelas');
     for(let t=1; t<=6; t++) { ['DELIMA', 'ZAMRUD'].forEach(k => {
         grid.innerHTML += `<div class="card-btn" onclick="pilihKelas('${t}', '${k}')">${t} ${k[0]}</div>`;
     });}
 
+    // Sync Data Utama
     db.ref('pelajar').on('value', snap => {
         const data = snap.val();
         databaseMurid = [];
@@ -165,119 +165,7 @@
 
     function getar(ms = 50) { if (window.navigator.vibrate) window.navigator.vibrate(ms); }
 
-    function tukarMarkah(uid, pts) {
-        if(isScrolling) return; // Anti-accidental click
-        getar();
-        db.ref('pelajar/' + uid + '/markah').transaction(cur => (cur || 0) + pts);
-    }
-
-    // NFC Functions
-    async function mulaScanNFC() {
-        if ('NDEFReader' in window) {
-            try {
-                const ndef = new NDEFReader(); await ndef.scan();
-                ndef.onreading = event => {
-                    const uid = event.serialNumber.replace(/:/g, "").toUpperCase();
-                    getar(100);
-                    if(document.getElementById('formView').style.display === "block") {
-                        document.getElementById('regUid').value = uid;
-                    } else {
-                        prosesQuickNFC(uid);
-                    }
-                };
-            } catch(e) { alert("NFC tidak aktif."); }
-        } else { alert("Guna Chrome Android untuk NFC."); }
-    }
-
-    function prosesQuickNFC(uid) {
-        const m = databaseMurid.find(x => x.uid === uid);
-        if(m) {
-            currentNfcUid = uid;
-            updateNfcPopupData();
-            document.getElementById('nfcPopup').style.display = 'flex';
-        } else {
-            if(confirm("Kad tidak berdaftar. Daftar sekarang?")) {
-                bukaDaftar();
-                document.getElementById('regUid').value = uid;
-            }
-        }
-    }
-
-    function updateNfcPopupData() {
-        const m = databaseMurid.find(x => x.uid === currentNfcUid);
-        if(m) {
-            document.getElementById('nfcNama').innerText = m.nama;
-            document.getElementById('nfcKelas').innerText = `TAHUN ${m.tahun} ${m.namaKelas}`;
-            document.getElementById('nfcSkor').innerText = m.markah || 0;
-        }
-    }
-
-    function tukarMarkahNFC(pts) {
-        tukarMarkah(currentNfcUid, pts);
-    }
-
-    // Kehadiran Logic
-    async function prosesKehadiran() {
-        const tkh = document.getElementById('tarikhHadir').value;
-        if(!tkh) return;
-        const modeRmt = document.getElementById('boxPilihKelas').style.display === 'none';
-        
-        const snap = await db.ref('kehadiran/' + tkh).once('value');
-        const dataHadir = snap.val() || {};
-        
-        let list = modeRmt ? 
-            databaseMurid.filter(m => m.rmt) : 
-            databaseMurid.filter(m => m.tahun == document.getElementById('selTahun').value && m.namaKelas == document.getElementById('selKelas').value);
-        
-        list.sort((a,b) => a.nama.localeCompare(b.nama));
-        
-        let countHadir = 0;
-        let html = `<table>`;
-        list.forEach((m, index) => {
-            const isHadir = !!dataHadir[m.uid];
-            if(isHadir) countHadir++;
-            html += `<tr>
-                <td class="no-bil">${index + 1}</td>
-                <td style="width:60%"><b>${m.nama}</b></td>
-                <td><button id="btn-${m.uid}" class="btn-tick ${isHadir ? 'btn-hadir' : 'btn-tidak'}" onclick="simpanHadirPantas('${m.uid}', ${!isHadir})">${isHadir ? 'HADIR ✅' : 'TIADA ❌'}</button></td>
-            </tr>`;
-        });
-        document.getElementById('listKehadiranTable').innerHTML = html + `</table>`;
-        document.getElementById('statHadir').innerText = `Jumlah Hadir: ${countHadir} / ${list.length}`;
-    }
-
-    function simpanHadirPantas(uid, status) {
-        if(isScrolling) return;
-        const tkh = document.getElementById('tarikhHadir').value;
-        getar(30);
-        if(status) db.ref('kehadiran/' + tkh + '/' + uid).set(true);
-        else db.ref('kehadiran/' + tkh + '/' + uid).remove();
-        // UI auto-refresh via Firebase Listener
-    }
-
-    async function refreshKehadiranQuietly() {
-        const tkh = document.getElementById('tarikhHadir').value;
-        const snap = await db.ref('kehadiran/' + tkh).once('value');
-        const dataHadir = snap.val() || {};
-        
-        let countHadir = 0;
-        let totalDisplay = 0;
-
-        databaseMurid.forEach(m => {
-            const btn = document.getElementById('btn-' + m.uid);
-            if(btn) {
-                totalDisplay++;
-                const isHadir = !!dataHadir[m.uid];
-                if(isHadir) countHadir++;
-                btn.className = "btn-tick " + (isHadir ? 'btn-hadir' : 'btn-tidak');
-                btn.innerText = isHadir ? 'HADIR ✅' : 'TIADA ❌';
-                btn.onclick = () => simpanHadirPantas(m.uid, !isHadir);
-            }
-        });
-        document.getElementById('statHadir').innerText = `Jumlah Hadir: ${countHadir} / ${totalDisplay}`;
-    }
-
-    // Navigation & Form
+    // Navigation
     function pilihKelas(t, k) {
         curTahun = t; curKelas = k;
         document.getElementById('menuFolder').style.display = 'none';
@@ -315,6 +203,182 @@
         });
     }
 
+    // Markah Logic
+    function tukarMarkah(uid, pts) {
+        if(isScrolling) return;
+        getar();
+        db.ref('pelajar/' + uid + '/markah').transaction(cur => (cur || 0) + pts);
+    }
+
+    // Kehadiran Logic (OPTIMIZED)
+    async function prosesKehadiran() {
+        const tkh = document.getElementById('tarikhHadir').value;
+        if(!tkh) return;
+        const modeRmt = document.getElementById('boxPilihKelas').style.display === 'none';
+        
+        const snap = await db.ref('kehadiran/' + tkh).once('value');
+        const dataHadir = snap.val() || {};
+        
+        let list = modeRmt ? 
+            databaseMurid.filter(m => m.rmt) : 
+            databaseMurid.filter(m => m.tahun == document.getElementById('selTahun').value && m.namaKelas == document.getElementById('selKelas').value);
+        
+        list.sort((a,b) => a.nama.localeCompare(b.nama));
+        
+        let countHadir = 0;
+        let html = `<table>`;
+        list.forEach((m, index) => {
+            const isHadir = !!dataHadir[m.uid];
+            if(isHadir) countHadir++;
+            html += `<tr>
+                <td class="no-bil">${index + 1}</td>
+                <td style="width:60%"><b>${m.nama}</b></td>
+                <td><button id="btn-${m.uid}" class="btn-tick ${isHadir ? 'btn-hadir' : 'btn-tidak'}" onclick="simpanHadirPantas('${m.uid}', ${!isHadir})">${isHadir ? 'HADIR ✅' : 'TIADA ❌'}</button></td>
+            </tr>`;
+        });
+        document.getElementById('listKehadiranTable').innerHTML = html + `</table>`;
+        document.getElementById('statHadir').innerText = `Jumlah Hadir: ${countHadir} / ${list.length}`;
+    }
+
+    function simpanHadirPantas(uid, status) {
+        if(isScrolling) return;
+        const tkh = document.getElementById('tarikhHadir').value;
+        if(!tkh) return;
+
+        getar(30);
+        
+        // Update UI locally first for speed
+        const btn = document.getElementById('btn-' + uid);
+        if(btn) {
+            btn.className = "btn-tick " + (status ? 'btn-hadir' : 'btn-tidak');
+            btn.innerText = status ? 'HADIR ✅' : 'TIADA ❌';
+            btn.onclick = () => simpanHadirPantas(uid, !status);
+            
+            // Recalculate stats locally
+            updateStatsLocally();
+        }
+
+        // Send to Firebase
+        if(status) db.ref('kehadiran/' + tkh + '/' + uid).set(true);
+        else db.ref('kehadiran/' + tkh + '/' + uid).remove();
+    }
+
+    function updateStatsLocally() {
+        const allBtns = document.querySelectorAll('.btn-hadir').length;
+        const total = document.querySelectorAll('.btn-tick').length;
+        document.getElementById('statHadir').innerText = `Jumlah Hadir: ${allBtns} / ${total}`;
+    }
+
+    async function refreshKehadiranQuietly() {
+        const tkh = document.getElementById('tarikhHadir').value;
+        if(!tkh) return;
+        const snap = await db.ref('kehadiran/' + tkh).once('value');
+        const dataHadir = snap.val() || {};
+        
+        databaseMurid.forEach(m => {
+            const btn = document.getElementById('btn-' + m.uid);
+            if(btn) {
+                const isHadir = !!dataHadir[m.uid];
+                btn.className = "btn-tick " + (isHadir ? 'btn-hadir' : 'btn-tidak');
+                btn.innerText = isHadir ? 'HADIR ✅' : 'TIADA ❌';
+                btn.onclick = () => simpanHadirPantas(m.uid, !isHadir);
+            }
+        });
+        updateStatsLocally();
+    }
+
+    // NFC & Form Edit Logic
+    function bukaDaftar() {
+        document.getElementById('formTitle').innerText = "Daftar Murid Baru";
+        document.getElementById('regUid').value = "";
+        document.getElementById('regUid').readOnly = false;
+        document.getElementById('regNama').value = "";
+        document.getElementById('btnPadam').style.display = "none";
+        document.getElementById('formView').style.display = "block";
+    }
+
+    function bukaEdit(uid) {
+        const m = databaseMurid.find(x => x.uid === uid);
+        if(!m) return;
+        document.getElementById('formTitle').innerText = "Kemaskini Murid";
+        document.getElementById('regUid').value = m.uid;
+        document.getElementById('regUid').readOnly = true;
+        document.getElementById('regNama').value = m.nama;
+        document.getElementById('regTahun').value = m.tahun;
+        document.getElementById('regKelas').value = m.namaKelas;
+        document.getElementById('regRMT').checked = m.rmt || false;
+        document.getElementById('btnPadam').style.display = "block";
+        document.getElementById('formView').style.display = "block";
+    }
+
+    function simpanData() {
+        const uid = document.getElementById('regUid').value.toUpperCase().trim();
+        const nama = document.getElementById('regNama').value.toUpperCase().trim();
+        if(!uid || !nama) return alert("UID dan Nama wajib diisi!");
+        
+        db.ref('pelajar/' + uid).update({
+            nama: nama,
+            tahun: document.getElementById('regTahun').value,
+            namaKelas: document.getElementById('regKelas').value,
+            rmt: document.getElementById('regRMT').checked
+        }).then(() => {
+            getar(100);
+            tutupForm();
+        });
+    }
+
+    function padamMurid() {
+        const uid = document.getElementById('regUid').value;
+        if(confirm("Padam murid ini secara kekal?")) {
+            db.ref('pelajar/' + uid).remove().then(() => tutupForm());
+        }
+    }
+
+    // NFC Trigger
+    async function mulaScanNFC() {
+        if ('NDEFReader' in window) {
+            try {
+                const ndef = new NDEFReader(); await ndef.scan();
+                ndef.onreading = event => {
+                    const uid = event.serialNumber.replace(/:/g, "").toUpperCase();
+                    getar(100);
+                    if(document.getElementById('formView').style.display === "block") {
+                        document.getElementById('regUid').value = uid;
+                    } else {
+                        prosesQuickNFC(uid);
+                    }
+                };
+            } catch(e) { alert("NFC Error: " + e); }
+        } else { alert("Guna Chrome Android."); }
+    }
+
+    function prosesQuickNFC(uid) {
+        const m = databaseMurid.find(x => x.uid === uid);
+        if(m) {
+            currentNfcUid = uid;
+            updateNfcPopupData();
+            document.getElementById('nfcPopup').style.display = 'flex';
+        } else {
+            if(confirm("Kad baru dikesan. Daftar?")) {
+                bukaDaftar();
+                document.getElementById('regUid').value = uid;
+            }
+        }
+    }
+
+    function updateNfcPopupData() {
+        const m = databaseMurid.find(x => x.uid === currentNfcUid);
+        if(m) {
+            document.getElementById('nfcNama').innerText = m.nama;
+            document.getElementById('nfcKelas').innerText = `TAHUN ${m.tahun} ${m.namaKelas}`;
+            document.getElementById('nfcSkor').innerText = m.markah || 0;
+        }
+    }
+
+    function tukarMarkahNFC(pts) {
+        tukarMarkah(currentNfcUid, pts);
+    }
+
     function logikCarian(val) {
         if(val.trim().length > 0) {
             document.getElementById('menuFolder').style.display = 'none';
@@ -328,21 +392,8 @@
     function bukaKehadiran() { document.getElementById('menuFolder').style.display = 'none'; document.getElementById('kehadiranView').style.display = 'block'; document.getElementById('boxPilihKelas').style.display = 'flex'; document.getElementById('tarikhHadir').valueAsDate = new Date(); prosesKehadiran(); }
     function bukaRMT() { document.getElementById('menuFolder').style.display = 'none'; document.getElementById('kehadiranView').style.display = 'block'; document.getElementById('boxPilihKelas').style.display = 'none'; document.getElementById('tarikhHadir').valueAsDate = new Date(); prosesKehadiran(); }
     function kembali() { document.querySelectorAll('.view-section').forEach(v => v.style.display = 'none'); document.getElementById('menuFolder').style.display = 'block'; document.getElementById('cariUtama').value = ""; }
-    function bukaDaftar() { document.getElementById('formView').style.display = 'block'; }
     function tutupForm() { document.getElementById('formView').style.display = 'none'; }
     function tutupNfc() { document.getElementById('nfcPopup').style.display = 'none'; }
-    
-    function simpanData() {
-        const uid = document.getElementById('regUid').value.toUpperCase().trim();
-        const nama = document.getElementById('regNama').value.toUpperCase().trim();
-        if(!uid || !nama) return alert("UID dan Nama wajib diisi!");
-        db.ref('pelajar/' + uid).update({
-            nama: nama,
-            tahun: document.getElementById('regTahun').value,
-            namaKelas: document.getElementById('regKelas').value,
-            rmt: document.getElementById('regRMT').checked
-        }).then(() => tutupForm());
-    }
 </script>
 </body>
 </html>
