@@ -13,57 +13,43 @@
         .header { text-align: center; padding: 20px; background: linear-gradient(135deg, var(--primary), #3f37c9); color: white; border-radius: 15px; margin-bottom: 15px; }
         .nfc-card { background: var(--nfc); border: 1px solid #ffeeba; border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: center; }
         .tahun-card { background: white; border-radius: 12px; margin-bottom: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; }
-        .tahun-header { padding: 18px; background: white; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; font-size: 1.1rem; }
+        .tahun-header { padding: 18px; background: white; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; }
         .tahun-content { display: none; padding: 0 15px 15px 15px; border-top: 1px solid #f8f9fa; }
-        .badge-count { background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; }
         .murid-item { padding: 15px 0; border-bottom: 1px solid #f1f1f1; }
         .markah-badge { background: var(--dark); color: white; padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; transition: all 0.2s; }
-        .markah-up { background: var(--success) !important; transform: scale(1.2); }
-        .markah-down { background: var(--danger) !important; transform: scale(1.2); }
+        .markah-up { background: var(--success) !important; transform: scale(1.1); }
+        .markah-down { background: var(--danger) !important; transform: scale(1.1); }
         .btn { padding: 12px; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; }
         .btn-primary { background: var(--primary); }
-        .btn-merit { background: var(--success); flex: 1; font-size: 0.85rem; }
-        .btn-demerit { background: var(--danger); flex: 1; font-size: 0.85rem; }
-        .btn-edit { background: #f0f2f5; color: #666; width: auto; padding: 6px 15px; font-size: 0.75rem; margin-top: 10px; border: 1px solid #ddd; border-radius: 8px; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
-        #cari { position: sticky; top: 5px; z-index: 100; border: 2px solid var(--primary); margin-bottom: 15px; background: white; }
+        .btn-merit { background: var(--success); flex: 1; }
+        .btn-demerit { background: var(--danger); flex: 1; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        #cari { position: sticky; top: 5px; z-index: 100; border: 2px solid var(--primary); background: white; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 85%; max-width: 400px; }
+        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 85%; }
     </style>
 </head>
 <body>
 
 <div class="header">
     <h2 style="margin:0">SK MELEKEK</h2>
-    <p style="margin:5px 0 0; font-size:0.8rem; opacity:0.9;">Dashboard Merit-Demerit</p>
+    <p style="margin:5px 0 0; font-size:0.8rem;">Mod Fokus NFC</p>
 </div>
 
 <div class="nfc-card">
     <button class="btn btn-primary" id="btnNFC" onclick="mulaNFC()">📲 AKTIFKAN NFC & GETARAN</button>
-    <p id="nfcStatus" style="font-size: 0.8rem; margin-top: 8px; font-weight: 600; color: #856404;">Sedia imbas kad murid.</p>
+    <p id="nfcStatus" style="font-size: 0.75rem; margin-top: 8px; color: #856404;">Sila tekan butang di atas untuk mula.</p>
 </div>
 
 <div id="pendaftaranBox" class="tahun-card" style="display:none; border: 2px dashed var(--danger); padding:15px; background: #fff5f5;">
     <h4 style="margin:0; color:var(--danger)">⚠️ Kad Baru: <span id="newUid"></span></h4>
     <input type="text" id="regNama" placeholder="Nama Penuh Pelajar">
-    <select id="regTahun"><option value="">Pilih Tahun</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select>
-    <button class="btn btn-primary" onclick="simpanMurid()">DAFTAR SEKARANG</button>
+    <select id="regTahun" style="width:100%; padding:10px; border-radius:10px; margin-top:10px;"><option value="">Pilih Tahun</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select>
+    <button class="btn btn-primary" style="margin-top:10px" onclick="simpanMurid()">DAFTAR</button>
 </div>
 
-<input type="text" id="cari" placeholder="🔍 Cari nama murid..." oninput="filterMurid()">
+<input type="text" id="cari" placeholder="🔍 Cari nama murid..." oninput="resetFokus(); filterMurid()">
 <div id="mainContainer"></div>
-
-<div id="modalEdit" class="modal">
-    <div class="modal-content">
-        <h3>Kemaskini Profil</h3>
-        <input type="hidden" id="editUid"><input type="text" id="editNama">
-        <select id="editTahun"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select>
-        <div style="display:flex; gap:10px; margin-top:15px;">
-            <button class="btn btn-primary" style="flex:1" onclick="simpanEdit()">SIMPAN</button>
-            <button class="btn btn-demerit" style="flex:1" onclick="tutupModal()">BATAL</button>
-        </div>
-    </div>
-</div>
 
 <script>
     const firebaseConfig = {
@@ -77,6 +63,7 @@
     
     let semuaMurid = [];
     let openedTahun = new Set(); 
+    let nfcFokusUid = ""; // ID khusus untuk murid yang di-scan
 
     db.ref('pelajar').on('value', s => {
         const data = s.val();
@@ -91,6 +78,8 @@
         document.getElementById('newUid').innerText = uid || "";
     });
 
+    function resetFokus() { nfcFokusUid = ""; }
+
     function paparTahun() {
         const container = document.getElementById('mainContainer');
         const key = document.getElementById('cari').value.toLowerCase().trim();
@@ -99,22 +88,20 @@
         for (let t = 1; t <= 6; t++) {
             let muridTahun = semuaMurid.filter(m => parseInt(m.tahun) === t);
             
-            // Tapis mengikut carian
-            if (key !== "") {
+            // LOGIK FOKUS NFC: Jika ada scan, tapis ikut UID tepat
+            if (nfcFokusUid !== "") {
+                muridTahun = muridTahun.filter(m => m.uid === nfcFokusUid);
+            } else if (key !== "") {
                 muridTahun = muridTahun.filter(m => m.nama.toLowerCase().includes(key));
             }
-
-            muridTahun.sort((a,b) => b.markah - a.markah);
 
             if(muridTahun.length > 0) {
                 const card = document.createElement('div');
                 card.className = 'tahun-card';
-                // Jika mencari, automatik buka folder
-                const isVisible = (key !== "" || openedTahun.has(t)) ? "block" : "none";
+                const isVisible = (nfcFokusUid !== "" || key !== "" || openedTahun.has(t)) ? "block" : "none";
                 card.innerHTML = `
                     <div class="tahun-header" onclick="toggleTahun(${t})">
                         <span>📂 TAHUN ${t}</span>
-                        <span class="badge-count">${muridTahun.length}</span>
                     </div>
                     <div id="content-tahun-${t}" class="tahun-content" style="display:${isVisible}">
                         ${muridTahun.map(m => binaItemMurid(m)).join('')}
@@ -132,34 +119,25 @@
                     <div class="markah-badge" id="markah-${m.uid}">${m.markah} PT</div>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:12px;">
-                    <button class="btn btn-merit" onclick="updateMarkah('${m.uid}', 5)">+5 Merit</button>
-                    <button class="btn btn-demerit" onclick="updateMarkah('${m.uid}', -5)">-5 Demerit</button>
+                    <button class="btn btn-merit" onclick="updateMarkah('${m.uid}', 5)">+5</button>
+                    <button class="btn btn-demerit" onclick="updateMarkah('${m.uid}', -5)">-5</button>
                 </div>
-                <button class="btn btn-edit" onclick="bukaModal('${m.uid}', '${m.nama}', '${m.tahun}')">✏️ Edit</button>
             </div>`;
     }
 
     function toggleTahun(t) {
         const content = document.getElementById(`content-tahun-${t}`);
-        if(content.style.display === "block") {
-            content.style.display = "none";
-            openedTahun.delete(t);
-        } else {
-            content.style.display = "block";
-            openedTahun.add(t);
-        }
+        content.style.display = content.style.display === "block" ? "none" : "block";
     }
 
     function updateMarkah(uid, val) {
-        // PAKSA GETARAN (PENTING)
+        // PAKSA GETARAN: Menggunakan array pattern untuk impak lebih terasa
         if (navigator.vibrate) {
-            navigator.vibrate(70); // Getaran lebih kuat sedikit
+            navigator.vibrate([70, 40, 70]); 
         }
         
         const badge = document.getElementById(`markah-${uid}`);
-        if(val > 0) badge.classList.add('markah-up');
-        else badge.classList.add('markah-down');
-        
+        badge.classList.add(val > 0 ? 'markah-up' : 'markah-down');
         setTimeout(() => badge.classList.remove('markah-up', 'markah-down'), 400);
         db.ref('pelajar/'+uid+'/markah').transaction(c => (c || 0) + val);
     }
@@ -169,24 +147,24 @@
     async function mulaNFC() {
         const status = document.getElementById('nfcStatus');
         const btn = document.getElementById('btnNFC');
-        if (navigator.vibrate) navigator.vibrate(50); // Test getaran awal
+        
+        // PENTING: Klik ini "bangunkan" sistem getaran Android
+        if (navigator.vibrate) navigator.vibrate(100);
         
         if ('NDEFReader' in window) {
             try {
                 const ndef = new NDEFReader();
                 await ndef.scan();
-                status.innerHTML = "✅ NFC & Getaran Aktif!";
-                status.style.color = "green";
+                status.innerHTML = "✅ NFC AKTIF. Sedia scan kad.";
                 btn.style.background = "#2ecc71";
                 ndef.onreading = event => {
                     const uid = event.serialNumber.replace(/:/g, "").toUpperCase();
-                    if (navigator.vibrate) navigator.vibrate(150); // Getaran panjang masa scan
-                    const murid = semuaMurid.find(m => m.uid === uid);
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
                     
+                    const murid = semuaMurid.find(m => m.uid === uid);
                     if(murid) {
-                        // MASUKKAN NAMA TEPAT KE KOTAK CARIAN
-                        document.getElementById('cari').value = murid.nama;
-                        // CETUSKAN PAPARAN (Ini akan buat senarai lain hilang)
+                        nfcFokusUid = uid; // Fokus pada ID tepat
+                        document.getElementById('cari').value = ""; // Kosongkan carian nama
                         paparTahun();
                     } else {
                         db.ref('temp_pendaftaran/uid_baru').set(uid);
@@ -203,22 +181,7 @@
         if(nama && tahun) {
             db.ref('pelajar/'+uid).set({ nama, tahun, markah: 100 });
             db.ref('temp_pendaftaran/uid_baru').set("");
-            document.getElementById('regNama').value = "";
         }
-    }
-
-    function bukaModal(uid, nama, tahun) {
-        document.getElementById('editUid').value = uid;
-        document.getElementById('editNama').value = nama;
-        document.getElementById('editTahun').value = tahun;
-        document.getElementById('modalEdit').style.display = 'flex';
-    }
-    function tutupModal() { document.getElementById('modalEdit').style.display = 'none'; }
-    function simpanEdit() {
-        const uid = document.getElementById('editUid').value;
-        const nama = document.getElementById('editNama').value.toUpperCase().trim();
-        const tahun = document.getElementById('editTahun').value;
-        db.ref('pelajar/'+uid).update({ nama, tahun }).then(() => tutupModal());
     }
 </script>
 </body>
