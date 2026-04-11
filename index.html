@@ -25,20 +25,18 @@
         .btn-demerit { background: var(--danger); flex: 1; }
         input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
         #cari { position: sticky; top: 5px; z-index: 100; border: 2px solid var(--primary); background: white; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 85%; }
     </style>
 </head>
 <body>
 
 <div class="header">
     <h2 style="margin:0">SK MELEKEK</h2>
-    <p style="margin:5px 0 0; font-size:0.8rem;">Mod Fokus NFC</p>
+    <p style="margin:5px 0 0; font-size:0.8rem;">Sistem Merit - Fokus Getaran</p>
 </div>
 
 <div class="nfc-card">
     <button class="btn btn-primary" id="btnNFC" onclick="mulaNFC()">📲 AKTIFKAN NFC & GETARAN</button>
-    <p id="nfcStatus" style="font-size: 0.75rem; margin-top: 8px; color: #856404;">Sila tekan butang di atas untuk mula.</p>
+    <p id="nfcStatus" style="font-size: 0.75rem; margin-top: 8px; color: #856404;">Wajib klik butang ini untuk fungsi getaran.</p>
 </div>
 
 <div id="pendaftaranBox" class="tahun-card" style="display:none; border: 2px dashed var(--danger); padding:15px; background: #fff5f5;">
@@ -63,7 +61,7 @@
     
     let semuaMurid = [];
     let openedTahun = new Set(); 
-    let nfcFokusUid = ""; // ID khusus untuk murid yang di-scan
+    let nfcFokusUid = ""; 
 
     db.ref('pelajar').on('value', s => {
         const data = s.val();
@@ -87,8 +85,6 @@
 
         for (let t = 1; t <= 6; t++) {
             let muridTahun = semuaMurid.filter(m => parseInt(m.tahun) === t);
-            
-            // LOGIK FOKUS NFC: Jika ada scan, tapis ikut UID tepat
             if (nfcFokusUid !== "") {
                 muridTahun = muridTahun.filter(m => m.uid === nfcFokusUid);
             } else if (key !== "") {
@@ -119,8 +115,8 @@
                     <div class="markah-badge" id="markah-${m.uid}">${m.markah} PT</div>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:12px;">
-                    <button class="btn btn-merit" onclick="updateMarkah('${m.uid}', 5)">+5</button>
-                    <button class="btn btn-demerit" onclick="updateMarkah('${m.uid}', -5)">-5</button>
+                    <button class="btn btn-merit" onclick="updateMarkah('${m.uid}', 5)">+5 Merit</button>
+                    <button class="btn btn-demerit" onclick="updateMarkah('${m.uid}', -5)">-5 Demerit</button>
                 </div>
             </div>`;
     }
@@ -130,15 +126,17 @@
         content.style.display = content.style.display === "block" ? "none" : "block";
     }
 
+    // FUNGSI UPDATE DENGAN PAKSAAN GETARAN YANG LEBIH KUAT
     function updateMarkah(uid, val) {
-        // PAKSA GETARAN: Menggunakan array pattern untuk impak lebih terasa
-        if (navigator.vibrate) {
-            navigator.vibrate([70, 40, 70]); 
+        // Corak getaran: Bergetar 100ms, rehat 30ms, bergetar 100ms
+        if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate([100, 30, 100]); 
         }
         
         const badge = document.getElementById(`markah-${uid}`);
         badge.classList.add(val > 0 ? 'markah-up' : 'markah-down');
         setTimeout(() => badge.classList.remove('markah-up', 'markah-down'), 400);
+        
         db.ref('pelajar/'+uid+'/markah').transaction(c => (c || 0) + val);
     }
 
@@ -148,8 +146,8 @@
         const status = document.getElementById('nfcStatus');
         const btn = document.getElementById('btnNFC');
         
-        // PENTING: Klik ini "bangunkan" sistem getaran Android
-        if (navigator.vibrate) navigator.vibrate(100);
+        // PENTING: Langkah ini memberikan izin kepada Chrome untuk akses motor getaran
+        if (navigator.vibrate) navigator.vibrate(150);
         
         if ('NDEFReader' in window) {
             try {
@@ -159,12 +157,12 @@
                 btn.style.background = "#2ecc71";
                 ndef.onreading = event => {
                     const uid = event.serialNumber.replace(/:/g, "").toUpperCase();
-                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                    if (navigator.vibrate) navigator.vibrate([200, 50, 200]);
                     
                     const murid = semuaMurid.find(m => m.uid === uid);
                     if(murid) {
-                        nfcFokusUid = uid; // Fokus pada ID tepat
-                        document.getElementById('cari').value = ""; // Kosongkan carian nama
+                        nfcFokusUid = uid; 
+                        document.getElementById('cari').value = ""; 
                         paparTahun();
                     } else {
                         db.ref('temp_pendaftaran/uid_baru').set(uid);
