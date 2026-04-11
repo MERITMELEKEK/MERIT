@@ -13,71 +13,70 @@
         
         .header { text-align: center; padding: 15px; background: linear-gradient(135deg, var(--primary), #3f37c9); color: white; border-radius: 15px; margin-bottom: 15px; }
         
-        /* Menu Utama (Tahun) */
-        .grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .btn-tahun { background: white; border: 2px solid var(--primary); color: var(--primary); padding: 30px 10px; border-radius: 15px; font-weight: 600; font-size: 1.2rem; cursor: pointer; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .btn-tahun:active { background: var(--primary); color: white; }
+        /* Menu Folder Kelas */
+        #menuUtama { display: block; }
+        .grid-folder { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 10px; }
+        .btn-folder { background: white; border: 3px solid var(--primary); color: var(--primary); padding: 40px 10px; border-radius: 20px; font-weight: 700; font-size: 1.3rem; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
+        .btn-folder:active { transform: scale(0.95); background: var(--primary); color: white; }
 
-        /* Paparan Murid */
-        .view-section { display: none; }
-        .nav-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-        .btn-back { background: var(--dark); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        /* Paparan Senarai Murid */
+        #senaraiView { display: none; }
+        .nav-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn-back { background: var(--dark); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; font-size: 1rem; }
 
-        .murid-item { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee; transition: all 0.3s ease; }
+        .murid-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 2px solid #eee; transition: all 0.2s ease; }
         
-        /* KESAN BERCAHAYA (GLOW) */
-        .glow-hijau { 
-            background-color: #e8fcf0 !important; 
-            border: 2px solid var(--success) !important;
-            box-shadow: 0 0 20px rgba(46, 204, 113, 0.6);
-            transform: scale(1.02);
+        /* KESAN CAHAYA (VISUAL FEEDBACK) */
+        .cahaya-hijau { 
+            background-color: #2ecc71 !important; 
+            color: white !important;
+            box-shadow: 0 0 25px rgba(46, 204, 113, 0.8) !important;
+            border-color: #27ae60 !important;
         }
-        .glow-merah { 
-            background-color: #fff5f6 !important; 
-            border: 2px solid var(--danger) !important;
-            box-shadow: 0 0 20px rgba(239, 71, 111, 0.6);
-            transform: scale(1.02);
+        .cahaya-merah { 
+            background-color: #ef476f !important; 
+            color: white !important;
+            box-shadow: 0 0 25px rgba(239, 71, 111, 0.8) !important;
+            border-color: #d63031 !important;
         }
 
-        .btn { padding: 12px; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; touch-action: manipulation; }
-        .btn-merit { background: var(--success); flex: 1; }
-        .btn-demerit { background: var(--danger); flex: 1; }
+        .btn-aksi { padding: 15px; border: none; border-radius: 10px; color: white; font-weight: 700; flex: 1; font-size: 1rem; touch-action: manipulation; }
+        .markah-badge { background: var(--dark); color: white; padding: 5px 12px; border-radius: 8px; font-weight: 700; }
         
-        .markah-badge { background: var(--dark); color: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        
-        .nfc-active-btn { background: #ffbe0b; color: #000; width: 100%; padding: 15px; border-radius: 15px; font-weight: bold; border: none; margin-bottom: 15px; }
+        .btn-nfc-main { background: #f1c40f; color: black; width: 100%; padding: 20px; border-radius: 20px; font-weight: 800; border: none; margin-bottom: 20px; font-size: 1.1rem; box-shadow: 0 5px 0 #d4ac0d; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h3 style="margin:0">SK MELEKEK</h3>
-    <small>Pengurusan Merit-Demerit</small>
+    <h2 style="margin:0">SK MELEKEK</h2>
+    <small>Sistem Merit-Demerit 2026</small>
 </div>
 
 <div id="menuUtama">
-    <button class="nfc-active-btn" onclick="mulaNFC()">📲 AKTIFKAN NFC & GETARAN</button>
-    <div class="grid-menu">
-        <div class="btn-tahun" onclick="bukaTahun(1)">TAHUN 1</div>
-        <div class="btn-tahun" onclick="bukaTahun(2)">TAHUN 2</div>
-        <div class="btn-tahun" onclick="bukaTahun(3)">TAHUN 3</div>
-        <div class="btn-tahun" onclick="bukaTahun(4)">TAHUN 4</div>
-        <div class="btn-tahun" onclick="bukaTahun(5)">TAHUN 5</div>
-        <div class="btn-tahun" onclick="bukaTahun(6)">TAHUN 6</div>
+    <button class="btn-nfc-main" onclick="mulaNFC()">📲 AKTIFKAN NFC & GETARAN</button>
+    <div class="grid-folder">
+        <div class="btn-folder" onclick="pilihTahun(1)">TAHUN 1</div>
+        <div class="btn-folder" onclick="pilihTahun(2)">TAHUN 2</div>
+        <div class="btn-folder" onclick="pilihTahun(3)">TAHUN 3</div>
+        <div class="btn-folder" onclick="pilihTahun(4)">TAHUN 4</div>
+        <div class="btn-folder" onclick="pilihTahun(5)">TAHUN 5</div>
+        <div class="btn-folder" onclick="pilihTahun(6)">TAHUN 6</div>
     </div>
 </div>
 
-<div id="senaraiMuridView" class="view-section">
-    <div class="nav-bar">
-        <button class="btn-back" onclick="kembaliKeMenu()">⬅️ KEMBALI</button>
-        <h3 id="tajukTahun" style="margin:0; color: var(--primary);"></h3>
+<div id="senaraiView">
+    <div class="nav-header">
+        <button class="btn-back" onclick="kembali()">⬅️ BACK</button>
+        <h3 id="labelTahun" style="margin:0; color: var(--primary);"></h3>
     </div>
-    <input type="text" id="cari" placeholder="🔍 Cari nama murid..." oninput="filterMurid()">
+    
+    <input type="text" id="cari" placeholder="🔍 Cari nama murid..." oninput="reRender()">
     <div id="muridContainer"></div>
 </div>
 
 <script>
+    // Konfigurasi Database
     const firebaseConfig = {
         apiKey: "AIzaSyAejpV7AXCzbPKhsmSo3jSmzggjxZ8eK3o",
         authDomain: "sistem-merit-sk-melekek.firebaseapp.com",
@@ -87,98 +86,105 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    let semuaMurid = [];
-    let tahunSemasa = null;
+    let databaseMurid = [];
+    let tahunDipilih = null;
+    let fokusUid = null;
 
-    db.ref('pelajar').on('value', s => {
-        const data = s.val();
-        semuaMurid = [];
-        for(let id in data) { semuaMurid.push({uid:id, ...data[id]}); }
-        if(tahunSemasa) paparMurid(tahunSemasa);
+    // Monitor Data
+    db.ref('pelajar').on('value', snap => {
+        const data = snap.val();
+        databaseMurid = [];
+        for(let key in data) { databaseMurid.push({uid: key, ...data[key]}); }
+        if(tahunDipilih) reRender();
     });
 
-    function bukaTahun(t) {
-        tahunSemasa = t;
+    // Fungsi Navigasi
+    function pilihTahun(t) {
+        tahunDipilih = t;
+        fokusUid = null;
         document.getElementById('menuUtama').style.display = 'none';
-        document.getElementById('senaraiMuridView').style.display = 'block';
-        document.getElementById('tajukTahun').innerText = "TAHUN " + t;
-        paparMurid(t);
+        document.getElementById('senaraiView').style.display = 'block';
+        document.getElementById('labelTahun').innerText = "TAHUN " + t;
+        reRender();
     }
 
-    function kembaliKeMenu() {
-        tahunSemasa = null;
+    function kembali() {
+        tahunDipilih = null;
         document.getElementById('menuUtama').style.display = 'block';
-        document.getElementById('senaraiMuridView').style.display = 'none';
+        document.getElementById('senaraiView').style.display = 'none';
         document.getElementById('cari').value = "";
     }
 
-    function paparMurid(t, idFokus = null) {
+    function reRender() {
         const container = document.getElementById('muridContainer');
-        const cari = document.getElementById('cari').value.toLowerCase().trim();
+        const carian = document.getElementById('cari').value.toLowerCase();
         container.innerHTML = "";
 
-        let senarai = semuaMurid.filter(m => parseInt(m.tahun) === t);
-        
-        if(idFokus) {
-            senarai = senarai.filter(m => m.uid === idFokus);
-        } else if (cari !== "") {
-            senarai = senarai.filter(m => m.nama.toLowerCase().includes(cari));
+        let filtered = databaseMurid.filter(m => parseInt(m.tahun) === tahunDipilih);
+
+        if(fokusUid) {
+            filtered = filtered.filter(m => m.uid === fokusUid);
+        } else if(carian !== "") {
+            filtered = filtered.filter(m => m.nama.toLowerCase().includes(carian));
         }
 
-        senarai.forEach(m => {
+        filtered.forEach(m => {
             const div = document.createElement('div');
             div.className = 'murid-item';
-            div.id = `item-${m.uid}`;
+            div.id = `card-${m.uid}`;
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center">
-                    <div><b>${m.nama}</b><br><small>${m.uid}</small></div>
+                    <div><b style="font-size:1.1rem">${m.nama}</b><br><small>${m.uid}</small></div>
                     <div class="markah-badge">${m.markah} PT</div>
                 </div>
-                <div style="display:flex; gap:10px; margin-top:12px;">
-                    <button class="btn btn-merit" onpointerdown="kemaskini('${m.uid}', 5)">+5 MERIT</button>
-                    <button class="btn btn-demerit" onpointerdown="kemaskini('${m.uid}', -5)">-5 DEMERIT</button>
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button class="btn-aksi" style="background:var(--success)" onpointerdown="aksiMarkah('${m.uid}', 5)">+5 MERIT</button>
+                    <button class="btn-aksi" style="background:var(--danger)" onpointerdown="aksiMarkah('${m.uid}', -5)">-5 DEMERIT</button>
                 </div>
             `;
             container.appendChild(div);
         });
     }
 
-    function kemaskini(uid, nilai) {
-        if (navigator.vibrate) navigator.vibrate([70, 40, 70]);
+    // Fungsi Markah & Visual
+    function aksiMarkah(uid, pts) {
+        // 1. Getar
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
-        const el = document.getElementById(`item-${uid}`);
-        const kelasGlow = nilai > 0 ? 'glow-hijau' : 'glow-merah';
-
-        // Efek Visual Bercahaya
-        el.classList.add(kelasGlow);
+        // 2. Visual Cahaya
+        const el = document.getElementById(`card-${uid}`);
+        const kelas = pts > 0 ? 'cahaya-hijau' : 'cahaya-merah';
         
-        db.ref('pelajar/'+uid+'/markah').transaction(c => (c || 0) + nilai);
+        el.classList.add(kelas);
+        
+        // 3. Update Firebase
+        db.ref('pelajar/' + uid + '/markah').transaction(cur => (cur || 0) + pts);
 
+        // 4. Padam cahaya selepas 1 saat
         setTimeout(() => {
-            el.classList.remove('glow-hijau', 'glow-merah');
-        }, 800);
+            if(el) el.classList.remove(kelas);
+        }, 1000);
     }
 
-    function filterMurid() {
-        paparMurid(tahunSemasa);
-    }
-
+    // Fungsi NFC
     async function mulaNFC() {
         if (navigator.vibrate) navigator.vibrate(100);
         if ('NDEFReader' in window) {
             try {
                 const ndef = new NDEFReader();
                 await ndef.scan();
-                alert("NFC & Getaran diaktifkan!");
+                alert("NFC & Getaran Sedia!");
                 ndef.onreading = event => {
-                    const uid = event.serialNumber.replace(/:/g, "").toUpperCase();
-                    const m = semuaMurid.find(x => x.uid === uid);
-                    if(m) {
-                        bukaTahun(parseInt(m.tahun));
-                        paparMurid(parseInt(m.tahun), uid);
+                    const idScan = event.serialNumber.replace(/:/g, "").toUpperCase();
+                    const murid = databaseMurid.find(x => x.uid === idScan);
+                    if(murid) {
+                        fokusUid = idScan;
+                        pilihTahun(parseInt(murid.tahun));
                     }
                 };
-            } catch (e) { alert("Sila benarkan akses NFC."); }
+            } catch (e) { alert("Sila benarkan NFC."); }
+        } else {
+            alert("Guna Chrome Android!");
         }
     }
 </script>
