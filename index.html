@@ -13,27 +13,39 @@
         
         .header { text-align: center; padding: 15px; background: linear-gradient(135deg, var(--primary), #3f37c9); color: white; border-radius: 15px; margin-bottom: 15px; }
         
-        /* Carian Global di Depan */
         .search-box-main { margin-bottom: 15px; }
         
         .grid-folder { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .btn-folder { background: white; border: 3px solid var(--primary); color: var(--primary); padding: 25px 10px; border-radius: 20px; font-weight: 700; font-size: 1.1rem; text-align: center; box-shadow: 0 5px 10px rgba(0,0,0,0.05); cursor: pointer; }
-        
         .btn-daftar-folder { grid-column: span 2; border-color: var(--danger); color: var(--danger); background: #fff5f6; }
 
         #senaraiView, #daftarView { display: none; }
         .nav-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; background: white; padding: 10px; border-radius: 10px; }
         .btn-back { background: var(--dark); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; }
 
-        .murid-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 2px solid #eee; transition: all 0.2s; }
+        /* Item Murid */
+        .murid-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 2px solid #eee; transition: background-color 0.2s; overflow: hidden; }
         
-        /* Kesan Flash */
-        .flash-hijau { background-color: var(--success) !important; color: white !important; }
-        .flash-merah { background-color: var(--danger) !important; color: white !important; }
+        /* Kesan Warna Flash */
+        .flash-hijau { background-color: var(--success) !important; color: white !important; border-color: #27ae60 !important; }
+        .flash-merah { background-color: var(--danger) !important; color: white !important; border-color: #d63031 !important; }
 
-        .btn-aksi { padding: 15px; border: none; border-radius: 10px; color: white; font-weight: 700; flex: 1; font-size: 1rem; }
+        /* Butang Aksi - Ditambah Touch-Action untuk elak ralat skrol */
+        .btn-aksi { 
+            padding: 15px; 
+            border: none; 
+            border-radius: 10px; 
+            color: white; 
+            font-weight: 700; 
+            flex: 1; 
+            font-size: 1rem; 
+            touch-action: manipulation; 
+            cursor: pointer;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
         .btn-save { background: var(--primary); width: 100%; margin-top: 15px; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 700; }
-        
         .markah-badge { background: var(--dark); color: white; padding: 5px 12px; border-radius: 8px; font-weight: 700; }
         .btn-nfc-main { background: var(--warning); color: black; width: 100%; padding: 18px; border-radius: 20px; font-weight: 800; border: none; margin-bottom: 15px; font-size: 1.1rem; box-shadow: 0 4px 0 #d4ac0d; }
         
@@ -44,16 +56,14 @@
 
 <div class="header">
     <h2 style="margin:0">SK MELEKEK</h2>
-    <small>Merit-Demerit Digital</small>
+    <small>Versi Skrol Selamat</small>
 </div>
 
 <div id="menuUtama">
     <button class="btn-nfc-main" onclick="mulaNFC()">📲 AKTIFKAN NFC</button>
-    
     <div class="search-box-main">
-        <input type="text" id="cariUtama" placeholder="🔍 Cari nama murid (Semua Tahun)..." oninput="carianGlobal()">
+        <input type="text" id="cariUtama" placeholder="🔍 Cari nama murid..." oninput="carianGlobal()">
     </div>
-
     <div id="folderContainer" class="grid-folder">
         <div class="btn-folder" onclick="pilihTahun(1)">TAHUN 1</div>
         <div class="btn-folder" onclick="pilihTahun(2)">TAHUN 2</div>
@@ -168,8 +178,8 @@
                     <div class="markah-badge">${m.markah}</div>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:12px;">
-                    <button class="btn-aksi" style="background:var(--success)" onpointerdown="aksiMarkah('${m.uid}', 5)">+5</button>
-                    <button class="btn-aksi" style="background:var(--danger)" onpointerdown="aksiMarkah('${m.uid}', -5)">-5</button>
+                    <button class="btn-aksi" style="background:var(--success)" onclick="aksiMarkah('${m.uid}', 5)">+5</button>
+                    <button class="btn-aksi" style="background:var(--danger)" onclick="aksiMarkah('${m.uid}', -5)">-5</button>
                 </div>
             `;
             container.appendChild(div);
@@ -177,12 +187,15 @@
     }
 
     function aksiMarkah(uid, pts) {
-        if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+        // Hanya bergetar dan simpan jika benar-benar "Klik"
+        if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
         const el = document.getElementById(`card-${uid}`);
         const kelas = pts > 0 ? 'flash-hijau' : 'flash-merah';
+        
         el.classList.add(kelas);
         db.ref('pelajar/' + uid + '/markah').transaction(cur => (cur || 0) + pts);
-        setTimeout(() => { if(el) el.classList.remove(kelas); }, 600);
+        
+        setTimeout(() => { if(el) el.classList.remove(kelas); }, 500);
     }
 
     function bukaPendaftaran(uid = "") {
@@ -206,7 +219,6 @@
             try {
                 const ndef = new NDEFReader();
                 await ndef.scan();
-                // TIADA ALERT DI SINI - TERUS AKTIF
                 ndef.onreading = event => {
                     const idScan = event.serialNumber.replace(/:/g, "").toUpperCase();
                     const murid = databaseMurid.find(x => x.uid === idScan);
