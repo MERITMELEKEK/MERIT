@@ -10,85 +10,55 @@
     <style>
         :root { --primary: #4361ee; --success: #2ecc71; --danger: #ef476f; --dark: #2b2d42; --bg: #f8f9fa; --nfc: #fff3cd; }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 10px; color: var(--dark); -webkit-tap-highlight-color: transparent; }
-        
         .header { text-align: center; padding: 20px; background: linear-gradient(135deg, var(--primary), #3f37c9); color: white; border-radius: 15px; margin-bottom: 15px; }
-        
-        /* NFC Card */
         .nfc-card { background: var(--nfc); border: 1px solid #ffeeba; border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: center; }
-        .nfc-status { font-size: 0.8rem; margin-top: 8px; font-weight: 600; color: #856404; }
-
-        /* Accordion Style */
         .tahun-card { background: white; border-radius: 12px; margin-bottom: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; }
-        .tahun-header { padding: 18px; background: white; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; font-size: 1.1rem; transition: background 0.2s; }
-        .tahun-header:active { background: #f0f2f5; }
+        .tahun-header { padding: 18px; background: white; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; font-size: 1.1rem; }
         .tahun-content { display: none; padding: 0 15px 15px 15px; border-top: 1px solid #f8f9fa; }
         .badge-count { background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; }
-
-        /* Murid Item */
         .murid-item { padding: 15px 0; border-bottom: 1px solid #f1f1f1; }
-        .murid-item:last-child { border-bottom: none; }
         .markah-badge { background: var(--dark); color: white; padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; transition: all 0.2s; }
-        
-        /* Animasi Markah */
         .markah-up { background: var(--success) !important; transform: scale(1.2); }
         .markah-down { background: var(--danger) !important; transform: scale(1.2); }
-        
-        /* Buttons */
-        .btn { padding: 12px; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; transition: opacity 0.1s; }
-        .btn:active { opacity: 0.8; }
+        .btn { padding: 12px; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; }
         .btn-primary { background: var(--primary); }
         .btn-merit { background: var(--success); flex: 1; font-size: 0.85rem; }
         .btn-demerit { background: var(--danger); flex: 1; font-size: 0.85rem; }
         .btn-edit { background: #f0f2f5; color: #666; width: auto; padding: 6px 15px; font-size: 0.75rem; margin-top: 10px; border: 1px solid #ddd; border-radius: 8px; }
-        
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 1rem; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
         #cari { position: sticky; top: 5px; z-index: 100; border: 2px solid var(--primary); margin-bottom: 15px; background: white; }
-        
-        /* Modal */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 85%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 85%; max-width: 400px; }
     </style>
 </head>
 <body>
 
 <div class="header">
     <h2 style="margin:0">SK MELEKEK</h2>
-    <p style="margin:5px 0 0; font-size:0.8rem; opacity:0.9;">Dashboard Pengurusan Merit-Demerit</p>
+    <p style="margin:5px 0 0; font-size:0.8rem; opacity:0.9;">Dashboard Merit-Demerit</p>
 </div>
 
 <div class="nfc-card">
-    <button class="btn btn-primary" id="btnNFC" onclick="mulaNFC()">📲 AKTIFKAN NFC PHONE</button>
-    <p id="nfcStatus" class="nfc-status">Sedia untuk imbas kad murid.</p>
+    <button class="btn btn-primary" id="btnNFC" onclick="mulaNFC()">📲 AKTIFKAN NFC & GETARAN</button>
+    <p id="nfcStatus" style="font-size: 0.8rem; margin-top: 8px; font-weight: 600; color: #856404;">Sedia untuk imbas.</p>
 </div>
 
 <div id="pendaftaranBox" class="tahun-card" style="display:none; border: 2px dashed var(--danger); padding:15px; background: #fff5f5;">
-    <h4 style="margin:0; color:var(--danger)">⚠️ Kad Belum Daftar: <span id="newUid"></span></h4>
+    <h4 style="margin:0; color:var(--danger)">⚠️ Kad Baru: <span id="newUid"></span></h4>
     <input type="text" id="regNama" placeholder="Nama Penuh Murid">
-    <select id="regTahun">
-        <option value="">Pilih Tahun</option>
-        <option value="1">Tahun 1</option><option value="2">Tahun 2</option>
-        <option value="3">Tahun 3</option><option value="4">Tahun 4</option>
-        <option value="5">Tahun 5</option><option value="6">Tahun 6</option>
-    </select>
+    <select id="regTahun"><option value="">Pilih Tahun</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select>
     <button class="btn btn-primary" onclick="simpanMurid()">DAFTAR SEKARANG</button>
 </div>
 
 <input type="text" id="cari" placeholder="🔍 Cari nama murid..." oninput="filterMurid()">
-
 <div id="mainContainer"></div>
 
 <div id="modalEdit" class="modal">
     <div class="modal-content">
-        <h3 style="margin-top:0">Kemaskini Profil</h3>
+        <h3>Kemaskini Profil</h3>
         <input type="hidden" id="editUid">
-        <label style="font-size:0.8rem; font-weight:600;">Nama Murid:</label>
         <input type="text" id="editNama">
-        <label style="font-size:0.8rem; font-weight:600;">Pilih Tahun:</label>
-        <select id="editTahun">
-            <option value="1">Tahun 1</option><option value="2">Tahun 2</option>
-            <option value="3">Tahun 3</option><option value="4">Tahun 4</option>
-            <option value="5">Tahun 5</option><option value="6">Tahun 6</option>
-        </select>
+        <select id="editTahun"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select>
         <div style="display:flex; gap:10px; margin-top:15px;">
             <button class="btn btn-primary" style="flex:1" onclick="simpanEdit()">SIMPAN</button>
             <button class="btn btn-demerit" style="flex:1" onclick="tutupModal()">BATAL</button>
@@ -97,7 +67,6 @@
 </div>
 
 <script>
-    // Konfigurasi Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAejpV7AXCzbPKhsmSo3jSmzggjxZ8eK3o",
         authDomain: "sistem-merit-sk-melekek.firebaseapp.com",
@@ -110,19 +79,17 @@
     let semuaMurid = [];
     let openedTahun = new Set(); 
 
-    // Pantau kad yang belum didaftar
-    db.ref('temp_pendaftaran/uid_baru').on('value', s => {
-        const uid = s.val();
-        document.getElementById('pendaftaranBox').style.display = uid ? 'block' : 'none';
-        document.getElementById('newUid').innerText = uid || "";
-    });
-
-    // Ambil data murid
     db.ref('pelajar').on('value', s => {
         const data = s.val();
         semuaMurid = [];
         for(let id in data) { semuaMurid.push({uid:id, ...data[id]}); }
         paparTahun();
+    });
+
+    db.ref('temp_pendaftaran/uid_baru').on('value', s => {
+        const uid = s.val();
+        document.getElementById('pendaftaranBox').style.display = uid ? 'block' : 'none';
+        document.getElementById('newUid').innerText = uid || "";
     });
 
     function paparTahun() {
@@ -132,66 +99,38 @@
 
         for (let t = 1; t <= 6; t++) {
             let muridTahun = semuaMurid.filter(m => parseInt(m.tahun) === t);
-            
-            if (key !== "") {
-                muridTahun = muridTahun.filter(m => m.nama.toLowerCase().includes(key));
-            }
-
+            if (key !== "") muridTahun = muridTahun.filter(m => m.nama.toLowerCase().includes(key));
             muridTahun.sort((a,b) => b.markah - a.markah);
 
             if(muridTahun.length > 0 || (key === "" && semuaMurid.some(m => parseInt(m.tahun) === t))) {
                 const card = document.createElement('div');
                 card.className = 'tahun-card';
                 const isVisible = (key !== "" || openedTahun.has(t)) ? "block" : "none";
-                
                 card.innerHTML = `
                     <div class="tahun-header" onclick="toggleTahun(${t})">
                         <span>📂 TAHUN ${t}</span>
-                        <span class="badge-count">${muridTahun.length} Murid</span>
+                        <span class="badge-count">${muridTahun.length}</span>
                     </div>
                     <div id="content-tahun-${t}" class="tahun-content" style="display:${isVisible}">
                         ${muridTahun.map(m => binaItemMurid(m)).join('')}
-                    </div>
-                `;
+                    </div>`;
                 container.appendChild(card);
             }
-        }
-
-        // Data Penyelamat (Data lama tanpa tahun)
-        let tiadaTahun = semuaMurid.filter(m => !m.tahun);
-        if (key !== "") tiadaTahun = tiadaTahun.filter(m => m.nama.toLowerCase().includes(key));
-        if(tiadaTahun.length > 0) {
-            const extra = document.createElement('div');
-            extra.className = 'tahun-card';
-            extra.style.border = "1px solid var(--danger)";
-            const isVisibleExtra = (key !== "" || openedTahun.has(0)) ? "block" : "none";
-            extra.innerHTML = `
-                <div class="tahun-header" onclick="toggleTahun(0)" style="color:var(--danger)">
-                    <span>⚠️ DATA LAMA (TIADA TAHUN)</span>
-                    <span class="badge-count" style="background:var(--danger)">${tiadaTahun.length}</span>
-                </div>
-                <div id="content-tahun-0" class="tahun-content" style="display:${isVisibleExtra}">
-                    ${tiadaTahun.map(m => binaItemMurid(m)).join('')}
-                </div>`;
-            container.appendChild(extra);
         }
     }
 
     function binaItemMurid(m) {
         return `
-            <div class="murid-item" id="item-${m.uid}">
+            <div class="murid-item">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="max-width:70%">
-                        <b style="font-size:0.95rem; display:block;">${m.nama}</b>
-                        <small style="color:#888;">ID: ${m.uid}</small>
-                    </div>
+                    <div><b>${m.nama}</b><br><small>ID: ${m.uid}</small></div>
                     <div class="markah-badge" id="markah-${m.uid}">${m.markah} PT</div>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:12px;">
                     <button class="btn btn-merit" onclick="updateMarkah('${m.uid}', 5)">+5 Merit</button>
                     <button class="btn btn-demerit" onclick="updateMarkah('${m.uid}', -5)">-5 Demerit</button>
                 </div>
-                <button class="btn btn-edit" onclick="bukaModal('${m.uid}', '${m.nama}', '${m.tahun||""}')">✏️ Edit</button>
+                <button class="btn btn-edit" onclick="bukaModal('${m.uid}', '${m.nama}', '${m.tahun}')">✏️ Edit</button>
             </div>`;
     }
 
@@ -206,70 +145,34 @@
         }
     }
 
-    // UPDATE MARKAH + GETARAN (VIBRATE)
+    // --- FUNGSI UPDATE DENGAN PAKSAAN GETARAN ---
     function updateMarkah(uid, val) {
-        // 1. Getaran (50ms)
-        if (navigator.vibrate) {
-            navigator.vibrate(50);
+        // Cuba bergetar sekuat mungkin (80ms)
+        if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(80);
         }
 
-        // 2. Kesan Visual
         const badge = document.getElementById(`markah-${uid}`);
         if(val > 0) badge.classList.add('markah-up');
         else badge.classList.add('markah-down');
         
-        setTimeout(() => {
-            badge.classList.remove('markah-up', 'markah-down');
-        }, 400);
-
-        // 3. Simpan ke Firebase
-        db.ref('pelajar/'+uid+'/markah').transaction(current => (current || 0) + val);
+        setTimeout(() => badge.classList.remove('markah-up', 'markah-down'), 400);
+        db.ref('pelajar/'+uid+'/markah').transaction(c => (c || 0) + val);
     }
 
-    function filterMurid() {
-        paparTahun();
-    }
+    function filterMurid() { paparTahun(); }
 
-    function simpanMurid() {
-        const uid = document.getElementById('newUid').innerText;
-        const nama = document.getElementById('regNama').value.toUpperCase();
-        const tahun = document.getElementById('regTahun').value;
-        if(nama && tahun) {
-            db.ref('pelajar/'+uid).set({ nama, tahun, markah: 100 });
-            db.ref('temp_pendaftaran/uid_baru').set("");
-            document.getElementById('regNama').value = "";
-        } else { alert("Sila isi Nama dan Tahun."); }
-    }
-
-    function bukaModal(uid, nama, tahun) {
-        document.getElementById('editUid').value = uid;
-        document.getElementById('editNama').value = nama;
-        document.getElementById('editTahun').value = tahun;
-        document.getElementById('modalEdit').style.display = 'flex';
-    }
-
-    function tutupModal() { document.getElementById('modalEdit').style.display = 'none'; }
-
-    function simpanEdit() {
-        const uid = document.getElementById('editUid').value;
-        const nama = document.getElementById('editNama').value.toUpperCase();
-        const tahun = document.getElementById('editTahun').value;
-        if(nama && tahun) {
-            db.ref('pelajar/'+uid).update({ nama, tahun }).then(() => tutupModal());
-        }
-    }
-
-    // FUNGSI NFC
     async function mulaNFC() {
         const status = document.getElementById('nfcStatus');
-        const btn = document.getElementById('btnNFC');
+        // PENTING: Minta izin getaran semasa klik butang pertama
+        if (navigator.vibrate) navigator.vibrate(50); 
+        
         if ('NDEFReader' in window) {
             try {
                 const ndef = new NDEFReader();
                 await ndef.scan();
-                status.innerHTML = "✅ <b>NFC AKTIF!</b> Sentuh kad murid.";
+                status.innerHTML = "✅ NFC & Getaran Aktif!";
                 status.style.color = "green";
-                btn.style.background = "#2ecc71";
                 ndef.onreading = event => {
                     const uid = event.serialNumber.replace(/:/g, "").toUpperCase();
                     if (navigator.vibrate) navigator.vibrate(100);
@@ -282,8 +185,32 @@
                         db.ref('temp_pendaftaran/uid_baru').set(uid);
                     }
                 };
-            } catch (e) { status.innerText = "❌ Sila benarkan akses NFC."; }
-        } else { alert("Gunakan Chrome di Android."); }
+            } catch (e) { status.innerText = "Ralat NFC!"; }
+        } else { alert("Gunakan Chrome Android!"); }
+    }
+
+    function simpanMurid() {
+        const uid = document.getElementById('newUid').innerText;
+        const nama = document.getElementById('regNama').value.toUpperCase();
+        const tahun = document.getElementById('regTahun').value;
+        if(nama && tahun) {
+            db.ref('pelajar/'+uid).set({ nama, tahun, markah: 100 });
+            db.ref('temp_pendaftaran/uid_baru').set("");
+        }
+    }
+
+    function bukaModal(uid, nama, tahun) {
+        document.getElementById('editUid').value = uid;
+        document.getElementById('editNama').value = nama;
+        document.getElementById('editTahun').value = tahun;
+        document.getElementById('modalEdit').style.display = 'flex';
+    }
+    function tutupModal() { document.getElementById('modalEdit').style.display = 'none'; }
+    function simpanEdit() {
+        const uid = document.getElementById('editUid').value;
+        const nama = document.getElementById('editNama').value.toUpperCase();
+        const tahun = document.getElementById('editTahun').value;
+        db.ref('pelajar/'+uid).update({ nama, tahun }).then(() => tutupModal());
     }
 </script>
 </body>
