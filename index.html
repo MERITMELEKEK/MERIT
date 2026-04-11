@@ -27,16 +27,14 @@
         #cari { position: sticky; top: 5px; z-index: 100; border: 2px solid var(--primary); background: white; }
     </style>
 </head>
-<body>
-
-<div class="header">
+<body onclick="aktifkanGetaranSenyap()"> <div class="header">
     <h2 style="margin:0">SK MELEKEK</h2>
-    <p style="margin:5px 0 0; font-size:0.8rem;">Sistem Merit - Fokus Getaran</p>
+    <p style="margin:5px 0 0; font-size:0.8rem;">Sistem Merit - Auto Vibration</p>
 </div>
 
 <div class="nfc-card">
-    <button class="btn btn-primary" id="btnNFC" onclick="mulaNFC()">📲 AKTIFKAN NFC & GETARAN</button>
-    <p id="nfcStatus" style="font-size: 0.75rem; margin-top: 8px; color: #856404;">Wajib klik butang ini untuk fungsi getaran.</p>
+    <button class="btn btn-primary" id="btnNFC" onclick="mulaNFC()">📲 AKTIFKAN NFC</button>
+    <p id="nfcStatus" style="font-size: 0.75rem; margin-top: 8px; color: #856404;">NFC perlu diaktifkan manual untuk keselamatan.</p>
 </div>
 
 <div id="pendaftaranBox" class="tahun-card" style="display:none; border: 2px dashed var(--danger); padding:15px; background: #fff5f5;">
@@ -62,6 +60,18 @@
     let semuaMurid = [];
     let openedTahun = new Set(); 
     let nfcFokusUid = ""; 
+    let getaranSudahAktif = false;
+
+    // Fungsi bangunkan getaran secara senyap pada sentuhan pertama
+    function aktifkanGetaranSenyap() {
+        if (!getaranSudahAktif) {
+            if (navigator.vibrate) {
+                navigator.vibrate(10); // Getaran sangat halus (hampir tak rasa) untuk unlock
+                getaranSudahAktif = true;
+                console.log("Getaran diaktifkan!");
+            }
+        }
+    }
 
     db.ref('pelajar').on('value', s => {
         const data = s.val();
@@ -122,15 +132,17 @@
     }
 
     function toggleTahun(t) {
+        aktifkanGetaranSenyap(); // Unlock getaran bila folder diklik
         const content = document.getElementById(`content-tahun-${t}`);
         content.style.display = content.style.display === "block" ? "none" : "block";
     }
 
-    // FUNGSI UPDATE DENGAN PAKSAAN GETARAN YANG LEBIH KUAT
     function updateMarkah(uid, val) {
-        // Corak getaran: Bergetar 100ms, rehat 30ms, bergetar 100ms
-        if (window.navigator && window.navigator.vibrate) {
-            window.navigator.vibrate([100, 30, 100]); 
+        // Panggil unlock jika belum aktif
+        aktifkanGetaranSenyap();
+
+        if (navigator.vibrate) {
+            navigator.vibrate([80, 40, 80]); 
         }
         
         const badge = document.getElementById(`markah-${uid}`);
@@ -144,20 +156,16 @@
 
     async function mulaNFC() {
         const status = document.getElementById('nfcStatus');
-        const btn = document.getElementById('btnNFC');
-        
-        // PENTING: Langkah ini memberikan izin kepada Chrome untuk akses motor getaran
-        if (navigator.vibrate) navigator.vibrate(150);
+        aktifkanGetaranSenyap();
         
         if ('NDEFReader' in window) {
             try {
                 const ndef = new NDEFReader();
                 await ndef.scan();
-                status.innerHTML = "✅ NFC AKTIF. Sedia scan kad.";
-                btn.style.background = "#2ecc71";
+                status.innerHTML = "✅ NFC AKTIF.";
                 ndef.onreading = event => {
                     const uid = event.serialNumber.replace(/:/g, "").toUpperCase();
-                    if (navigator.vibrate) navigator.vibrate([200, 50, 200]);
+                    if (navigator.vibrate) navigator.vibrate([150, 50, 150]);
                     
                     const murid = semuaMurid.find(m => m.uid === uid);
                     if(murid) {
@@ -168,8 +176,8 @@
                         db.ref('temp_pendaftaran/uid_baru').set(uid);
                     }
                 };
-            } catch (e) { status.innerText = "Sila benarkan akses NFC!"; }
-        } else { alert("Sila guna Chrome Android!"); }
+            } catch (e) { status.innerText = "Ralat NFC!"; }
+        } else { alert("Guna Chrome Android!"); }
     }
 
     function simpanMurid() {
