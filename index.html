@@ -16,7 +16,12 @@
         .search-box-main { margin-bottom: 15px; }
         
         .grid-folder { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .btn-folder { background: white; border: 3px solid var(--primary); color: var(--primary); padding: 25px 10px; border-radius: 20px; font-weight: 700; font-size: 1.1rem; text-align: center; box-shadow: 0 5px 10px rgba(0,0,0,0.05); cursor: pointer; }
+        .btn-folder { 
+            background: white; border: 3px solid var(--primary); color: var(--primary); 
+            padding: 25px 10px; border-radius: 20px; font-weight: 700; font-size: 1.1rem; 
+            text-align: center; box-shadow: 0 5px 10px rgba(0,0,0,0.05); cursor: pointer;
+            user-select: none; -webkit-user-select: none; touch-action: manipulation;
+        }
         .btn-daftar-folder { grid-column: span 2; border-color: var(--danger); color: var(--danger); background: #fff5f6; }
 
         #senaraiView, #daftarView { display: none; }
@@ -24,15 +29,11 @@
         .btn-back { background: var(--dark); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; }
 
         .murid-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 2px solid #eee; transition: all 0.2s; }
-        
-        .flash-hijau { background-color: var(--success) !important; color: white !important; border-color: #27ae60 !important; }
-        .flash-merah { background-color: var(--danger) !important; color: white !important; border-color: #d63031 !important; }
+        .flash-hijau { background-color: var(--success) !important; color: white !important; }
+        .flash-merah { background-color: var(--danger) !important; color: white !important; }
 
-        .btn-aksi { padding: 15px; border: none; border-radius: 10px; color: white; font-weight: 700; flex: 1; font-size: 1rem; touch-action: manipulation; cursor: pointer; }
-        .btn-edit-small { background: #eee; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; color: #555; cursor: pointer; }
-
-        .btn-save { background: var(--primary); width: 100%; margin-top: 15px; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 700; }
-        .btn-delete { background: white; width: 100%; margin-top: 10px; color: var(--danger); border: 2px solid var(--danger); padding: 10px; border-radius: 10px; font-weight: 600; }
+        .btn-aksi { padding: 15px; border: none; border-radius: 10px; color: white; font-weight: 700; flex: 1; font-size: 1rem; cursor: pointer; }
+        .btn-edit-small { background: #eee; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; color: #555; }
         
         .markah-badge { background: var(--dark); color: white; padding: 5px 12px; border-radius: 8px; font-weight: 700; }
         .btn-nfc-main { background: var(--warning); color: black; width: 100%; padding: 18px; border-radius: 20px; font-weight: 800; border: none; margin-bottom: 15px; font-size: 1.1rem; box-shadow: 0 4px 0 #d4ac0d; }
@@ -44,7 +45,7 @@
 
 <div class="header">
     <h2 style="margin:0">SK MELEKEK</h2>
-    <small>Pengurusan Merit v3.0</small>
+    <small>Sistem Merit (Tekan 10s Pukal)</small>
 </div>
 
 <div id="menuUtama">
@@ -53,14 +54,17 @@
         <input type="text" id="cariUtama" placeholder="🔍 Cari nama murid..." oninput="carianGlobal()">
     </div>
     <div id="folderContainer" class="grid-folder">
-        <div class="btn-folder" onclick="pilihTahun(1)">TAHUN 1</div>
-        <div class="btn-folder" onclick="pilihTahun(2)">TAHUN 2</div>
-        <div class="btn-folder" onclick="pilihTahun(3)">TAHUN 3</div>
-        <div class="btn-folder" onclick="pilihTahun(4)">TAHUN 4</div>
-        <div class="btn-folder" onclick="pilihTahun(5)">TAHUN 5</div>
-        <div class="btn-folder" onclick="pilihTahun(6)">TAHUN 6</div>
+        <div class="btn-folder" onpointerdown="startPress(1)" onpointerup="endPress(1)" onpointerleave="endPress(1)">TAHUN 1</div>
+        <div class="btn-folder" onpointerdown="startPress(2)" onpointerup="endPress(2)" onpointerleave="endPress(2)">TAHUN 2</div>
+        <div class="btn-folder" onpointerdown="startPress(3)" onpointerup="endPress(3)" onpointerleave="endPress(3)">TAHUN 3</div>
+        <div class="btn-folder" onpointerdown="startPress(4)" onpointerup="endPress(4)" onpointerleave="endPress(4)">TAHUN 4</div>
+        <div class="btn-folder" onpointerdown="startPress(5)" onpointerup="endPress(5)" onpointerleave="endPress(5)">TAHUN 5</div>
+        <div class="btn-folder" onpointerdown="startPress(6)" onpointerup="endPress(6)" onpointerleave="endPress(6)">TAHUN 6</div>
         <div class="btn-folder btn-daftar-folder" onclick="bukaPendaftaran()">➕ DAFTAR KAD BAHARU</div>
     </div>
+    <p style="text-align:center; font-size:0.75rem; color:#666; margin-top:15px; padding:0 10px;">
+        💡 <b>Tips:</b> Tekan & tahan butang kelas selama <b>10 saat</b> untuk tambah markah satu kelas sekaligus.
+    </p>
 </div>
 
 <div id="senaraiView">
@@ -84,8 +88,8 @@
             <option value="1">Tahun 1</option><option value="2">Tahun 2</option><option value="3">Tahun 3</option>
             <option value="4">Tahun 4</option><option value="5">Tahun 5</option><option value="6">Tahun 6</option>
         </select>
-        <button class="btn-save" id="btnSave" onclick="simpanMurid()">SIMPAN</button>
-        <button class="btn-delete" id="btnPadam" style="display:none;" onclick="padamMurid()">🗑️ PADAM MURID</button>
+        <button class="btn-aksi" style="background:var(--primary); width:100%;" onclick="simpanMurid()">SIMPAN</button>
+        <button class="btn-edit-small" id="btnPadam" style="display:none; width:100%; margin-top:15px; color:red;" onclick="padamMurid()">🗑️ PADAM REKOD</button>
     </div>
 </div>
 
@@ -102,6 +106,8 @@
     let databaseMurid = [];
     let tahunDipilih = null;
     let modeCarianGlobal = false;
+    let pressTimer;
+    let longPressActive = false;
 
     db.ref('pelajar').on('value', snap => {
         const data = snap.val();
@@ -110,6 +116,45 @@
         if(tahunDipilih || modeCarianGlobal) reRender();
     });
 
+    // LOGIK TEKAN LAMA TEPAT 10 SAAT
+    function startPress(tahun) {
+        longPressActive = false;
+        // 10000ms = 10 saat
+        pressTimer = window.setTimeout(function() {
+            longPressActive = true;
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 100]);
+            updateMarkahKelas(tahun);
+        }, 10000); 
+    }
+
+    function endPress(tahun) {
+        clearTimeout(pressTimer);
+        // Jika dilepaskan kurang dari 10 saat, ia buka folder seperti biasa
+        if (!longPressActive && event.type === 'pointerup') {
+            pilihTahun(tahun);
+        }
+    }
+
+    function updateMarkahKelas(t) {
+        let n = prompt("KEMASKINI SEMUA MURID TAHUN " + t + "\nMasukkan jumlah markah (cth: 10 atau -10):", "0");
+        
+        if (n !== null && n !== "" && n !== "0") {
+            let pts = parseInt(n);
+            let muridKelas = databaseMurid.filter(m => parseInt(m.tahun) === t);
+            
+            if (muridKelas.length > 0) {
+                if(confirm("Kemaskini " + pts + " markah kepada " + muridKelas.length + " murid?")) {
+                    muridKelas.forEach(m => {
+                        db.ref('pelajar/' + m.uid + '/markah').transaction(cur => (cur || 0) + pts);
+                    });
+                }
+            } else {
+                alert("Tiada murid berdaftar dalam kelas ini.");
+            }
+        }
+    }
+
+    // FUNGSI LAIN (CARIAN/NAVIGASI/EDIT)
     function carianGlobal() {
         const keyword = document.getElementById('cariUtama').value.trim();
         if(keyword.length > 0) {
@@ -140,16 +185,15 @@
 
     function reRender() {
         const container = document.getElementById('muridContainer');
-        const carian = document.getElementById('cariUtama').value.toLowerCase();
         container.innerHTML = "";
-        let filtered = modeCarianGlobal ? databaseMurid.filter(m => m.nama.toLowerCase().includes(carian)) : databaseMurid.filter(m => parseInt(m.tahun) === tahunDipilih);
+        let filtered = modeCarianGlobal ? databaseMurid.filter(m => m.nama.toLowerCase().includes(document.getElementById('cariUtama').value.toLowerCase())) : databaseMurid.filter(m => parseInt(m.tahun) === tahunDipilih);
         filtered.sort((a, b) => b.markah - a.markah);
         filtered.forEach(m => {
             const div = document.createElement('div');
             div.className = 'murid-item';
             div.id = `card-${m.uid}`;
             div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:flex-start">
+                <div style="display:flex; justify-content:space-between;">
                     <div><b>${m.nama}</b><br><small>T${m.tahun} | ${m.uid}</small></div>
                     <div style="text-align:right">
                         <div class="markah-badge">${m.markah}</div><br>
@@ -168,34 +212,29 @@
     function aksiMarkah(uid, pts) {
         if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
         const el = document.getElementById(`card-${uid}`);
-        const kelas = pts > 0 ? 'flash-hijau' : 'flash-merah';
-        el.classList.add(kelas);
+        el.classList.add(pts > 0 ? 'flash-hijau' : 'flash-merah');
         db.ref('pelajar/' + uid + '/markah').transaction(cur => (cur || 0) + pts);
-        setTimeout(() => { if(el) el.classList.remove(kelas); }, 500);
+        setTimeout(() => { if(el) el.classList.remove('flash-hijau', 'flash-merah'); }, 500);
     }
 
     function bukaPendaftaran(uid = "") {
         document.getElementById('menuUtama').style.display = 'none';
-        document.getElementById('senaraiView').style.display = 'none';
         document.getElementById('daftarView').style.display = 'block';
-        document.getElementById('labelDaftar').innerText = "DAFTAR BARU";
         document.getElementById('btnPadam').style.display = 'none';
         document.getElementById('regUid').value = uid;
         document.getElementById('regNama').value = "";
-        document.getElementById('regTahun').value = "";
     }
 
     function bukaEdit(uid) {
-        const murid = databaseMurid.find(m => m.uid === uid);
-        if(murid) {
+        const m = databaseMurid.find(x => x.uid === uid);
+        if(m) {
             document.getElementById('menuUtama').style.display = 'none';
             document.getElementById('senaraiView').style.display = 'none';
             document.getElementById('daftarView').style.display = 'block';
-            document.getElementById('labelDaftar').innerText = "EDIT MAKLUMAT";
             document.getElementById('btnPadam').style.display = 'block';
-            document.getElementById('regUid').value = murid.uid;
-            document.getElementById('regNama').value = murid.nama;
-            document.getElementById('regTahun').value = murid.tahun;
+            document.getElementById('regUid').value = m.uid;
+            document.getElementById('regNama').value = m.nama;
+            document.getElementById('regTahun').value = m.tahun;
         }
     }
 
@@ -205,13 +244,12 @@
         const tahun = document.getElementById('regTahun').value;
         if(uid && nama && tahun) {
             db.ref('pelajar/' + uid).update({ nama, tahun }).then(() => { kembali(); });
-        } else { alert("Lengkapkan nama dan tahun!"); }
+        }
     }
 
     function padamMurid() {
-        const uid = document.getElementById('regUid').value;
-        if(confirm("Padam murid ini secara kekal?")) {
-            db.ref('pelajar/' + uid).remove().then(() => { kembali(); });
+        if(confirm("Padam data murid ini?")) {
+            db.ref('pelajar/' + document.getElementById('regUid').value).remove().then(() => { kembali(); });
         }
     }
 
@@ -225,9 +263,9 @@
                     const idScan = event.serialNumber.replace(/:/g, "").toUpperCase();
                     const murid = databaseMurid.find(x => x.uid === idScan);
                     if(murid) { pilihTahun(parseInt(murid.tahun)); } 
-                    else { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); bukaPendaftaran(idScan); }
+                    else { bukaPendaftaran(idScan); }
                 };
-            } catch (e) { console.log("NFC Error"); }
+            } catch (e) { }
         }
     }
 </script>
