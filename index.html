@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sistem Merit SK Melekek</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -19,22 +19,24 @@
         .markah-badge { background: var(--dark); color: white; padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; transition: all 0.2s; }
         .markah-up { background: var(--success) !important; transform: scale(1.1); }
         .markah-down { background: var(--danger) !important; transform: scale(1.1); }
-        .btn { padding: 12px; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; }
+        .btn { padding: 12px; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; touch-action: manipulation; }
         .btn-primary { background: var(--primary); }
         .btn-merit { background: var(--success); flex: 1; }
         .btn-demerit { background: var(--danger); flex: 1; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
         #cari { position: sticky; top: 5px; z-index: 100; border: 2px solid var(--primary); background: white; }
     </style>
 </head>
-<body onclick="aktifkanGetaranSenyap()"> <div class="header">
+<body>
+
+<div class="header">
     <h2 style="margin:0">SK MELEKEK</h2>
-    <p style="margin:5px 0 0; font-size:0.8rem;">Sistem Merit - Auto Vibration</p>
+    <p style="margin:5px 0 0; font-size:0.8rem;">Mod Getaran Paksa</p>
 </div>
 
 <div class="nfc-card">
     <button class="btn btn-primary" id="btnNFC" onclick="mulaNFC()">📲 AKTIFKAN NFC</button>
-    <p id="nfcStatus" style="font-size: 0.75rem; margin-top: 8px; color: #856404;">NFC perlu diaktifkan manual untuk keselamatan.</p>
+    <p id="nfcStatus" style="font-size: 0.75rem; margin-top: 8px; color: #856404;">Gunakan Chrome di Android.</p>
 </div>
 
 <div id="pendaftaranBox" class="tahun-card" style="display:none; border: 2px dashed var(--danger); padding:15px; background: #fff5f5;">
@@ -60,16 +62,11 @@
     let semuaMurid = [];
     let openedTahun = new Set(); 
     let nfcFokusUid = ""; 
-    let getaranSudahAktif = false;
 
-    // Fungsi bangunkan getaran secara senyap pada sentuhan pertama
-    function aktifkanGetaranSenyap() {
-        if (!getaranSudahAktif) {
-            if (navigator.vibrate) {
-                navigator.vibrate(10); // Getaran sangat halus (hampir tak rasa) untuk unlock
-                getaranSudahAktif = true;
-                console.log("Getaran diaktifkan!");
-            }
+    // FUNGSI PAKSA GETAR (Force Vibrate)
+    function vibratePhone(ms) {
+        if ("vibrate" in navigator) {
+            navigator.vibrate(ms);
         }
     }
 
@@ -106,7 +103,7 @@
                 card.className = 'tahun-card';
                 const isVisible = (nfcFokusUid !== "" || key !== "" || openedTahun.has(t)) ? "block" : "none";
                 card.innerHTML = `
-                    <div class="tahun-header" onclick="toggleTahun(${t})">
+                    <div class="tahun-header" onclick="vibratePhone(30); toggleTahun(${t})">
                         <span>📂 TAHUN ${t}</span>
                     </div>
                     <div id="content-tahun-${t}" class="tahun-content" style="display:${isVisible}">
@@ -118,6 +115,7 @@
     }
 
     function binaItemMurid(m) {
+        // Menggunakan onmousedown dan ontouchstart untuk respon getaran terpantas
         return `
             <div class="murid-item">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -125,25 +123,26 @@
                     <div class="markah-badge" id="markah-${m.uid}">${m.markah} PT</div>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:12px;">
-                    <button class="btn btn-merit" onclick="updateMarkah('${m.uid}', 5)">+5 Merit</button>
-                    <button class="btn btn-demerit" onclick="updateMarkah('${m.uid}', -5)">-5 Demerit</button>
+                    <button class="btn btn-merit" 
+                        ontouchstart="vibratePhone(100)" 
+                        onmousedown="vibratePhone(100)" 
+                        onclick="updateMarkah('${m.uid}', 5)">+5</button>
+                    <button class="btn btn-demerit" 
+                        ontouchstart="vibratePhone(100)" 
+                        onmousedown="vibratePhone(100)" 
+                        onclick="updateMarkah('${m.uid}', -5)">-5</button>
                 </div>
             </div>`;
     }
 
     function toggleTahun(t) {
-        aktifkanGetaranSenyap(); // Unlock getaran bila folder diklik
         const content = document.getElementById(`content-tahun-${t}`);
         content.style.display = content.style.display === "block" ? "none" : "block";
     }
 
     function updateMarkah(uid, val) {
-        // Panggil unlock jika belum aktif
-        aktifkanGetaranSenyap();
-
-        if (navigator.vibrate) {
-            navigator.vibrate([80, 40, 80]); 
-        }
+        // Double check vibration
+        vibratePhone([80, 50, 80]);
         
         const badge = document.getElementById(`markah-${uid}`);
         badge.classList.add(val > 0 ? 'markah-up' : 'markah-down');
@@ -156,7 +155,7 @@
 
     async function mulaNFC() {
         const status = document.getElementById('nfcStatus');
-        aktifkanGetaranSenyap();
+        vibratePhone(100);
         
         if ('NDEFReader' in window) {
             try {
@@ -165,7 +164,7 @@
                 status.innerHTML = "✅ NFC AKTIF.";
                 ndef.onreading = event => {
                     const uid = event.serialNumber.replace(/:/g, "").toUpperCase();
-                    if (navigator.vibrate) navigator.vibrate([150, 50, 150]);
+                    vibratePhone([200, 100, 200]);
                     
                     const murid = semuaMurid.find(m => m.uid === uid);
                     if(murid) {
