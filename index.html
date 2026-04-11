@@ -3,114 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistem Merit SK Melekek v10</title>
+    <title>Sistem Merit SK Melekek v11</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { --primary: #4361ee; --success: #2ecc71; --danger: #ef476f; --dark: #2b2d42; --bg: #f8f9fa; --rmt: #ff9f43; }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
-        
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 10px; overflow-x: hidden; }
         .header { text-align: center; padding: 15px; background: linear-gradient(135deg, var(--primary), #3f37c9); color: white; border-radius: 15px; margin-bottom: 15px; }
         
         /* Grid Menu */
         .grid-folder { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .btn-folder { background: white; border: 2.5px solid var(--primary); color: var(--primary); padding: 15px 5px; border-radius: 15px; font-weight: 700; text-align: center; cursor: pointer; font-size: 0.85rem; }
         .btn-khas { grid-column: span 2; padding: 15px; border-radius: 15px; font-weight: 800; border: none; color: white; margin-top: 5px; cursor: pointer; }
-        .tahun-label { grid-column: span 2; font-size: 0.8rem; font-weight: 700; color: #777; margin-top: 10px; }
+        .tahun-label { grid-column: span 2; font-size: 0.8rem; font-weight: 700; color: #777; margin-top: 10px; border-bottom: 1px solid #ddd; padding-bottom: 3px; }
 
-        /* Pop-up NFC Scan */
-        #nfcPopup { 
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 90%; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            z-index: 1000; text-align: center; border: 4px solid var(--primary);
-        }
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+        /* NFC Dialog & Overlay */
+        #nfcPopup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; background: white; padding: 25px; border-radius: 25px; box-shadow: 0 15px 50px rgba(0,0,0,0.4); z-index: 2000; text-align: center; border: 5px solid var(--primary); }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; backdrop-filter: blur(4px); }
 
-        /* Murid Item */
-        .murid-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1.5px solid #eee; }
-        .btn-aksi { padding: 12px; border: none; border-radius: 10px; color: white; font-weight: 700; flex: 1; cursor: pointer; }
-        .skor-besar { font-size: 2rem; font-weight: 800; color: var(--dark); margin: 10px 0; }
+        /* UI Elements */
+        .murid-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1.5px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .btn-aksi { padding: 12px; border: none; border-radius: 10px; color: white; font-weight: 700; flex: 1; cursor: pointer; font-size: 1rem; }
+        .skor-box { font-size: 2.5rem; font-weight: 800; color: var(--dark); margin: 10px 0; background: #f0f2f5; border-radius: 15px; padding: 10px; }
 
-        #senaraiView, #daftarView, #kehadiranView { display: none; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #ddd; border-radius: 10px; }
+        #senaraiView, #daftarView { display: none; }
+        input, select { width: 100%; padding: 14px; margin-bottom: 12px; border: 2px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 1rem; }
     </style>
 </head>
 <body>
 
 <div class="header">
     <h2 style="margin:0">SK MELEKEK</h2>
-    <small>Sistem Merit & Pemulihan Data</small>
+    <small>Sistem Merit & Pemulihan Rekod</small>
 </div>
 
 <div class="overlay" id="overlay" onclick="tutupPopup()"></div>
 <div id="nfcPopup">
-    <h3 id="nfcNama">NAMA MURID</h3>
-    <p id="nfcKelas">Kelas: -</p>
-    <div class="skor-besar" id="nfcSkor">0</div>
-    <div style="display:flex; gap:10px;">
+    <h3 id="nfcNama" style="margin-bottom:5px; text-transform:uppercase;">...</h3>
+    <small id="nfcKelas" style="color:#666; font-weight:600; display:block; margin-bottom:10px;">ID: -</small>
+    <div class="skor-box" id="nfcSkor">0</div>
+    <div style="display:flex; gap:10px; margin-top:15px;">
         <button class="btn-aksi" style="background:var(--success)" id="btnNfcTambah">+5 MATA</button>
         <button class="btn-aksi" style="background:var(--danger)" id="btnNfcTolak">-5 MATA</button>
     </div>
-    <button onclick="tutupPopup()" style="margin-top:20px; background:none; border:none; color:gray; font-weight:bold;">TUTUP</button>
+    <button onclick="tutupPopup()" style="margin-top:20px; color:var(--primary); font-weight:bold; border:none; background:none; cursor:pointer;">TUTUP</button>
 </div>
 
 <div id="menuUtama">
-    <button id="btnNFCMain" class="btn-khas" style="background: var(--dark); margin-bottom: 15px;" onclick="mulaScanNFC()">
-        📡 IMBAS KAD (NFC)
+    <button id="btnNFCMain" class="btn-khas" style="background: var(--dark); margin-bottom: 15px; font-size:1.1rem;" onclick="mulaScanNFC()">
+        📡 IMBAS KAD (NFC TELEFON)
     </button>
 
     <div class="grid-folder">
-        <button class="btn-khas" style="background: #e63946;" onclick="pilihTahun('TIDAK_LENGKAP')">
-            ⚠️ REKOD TIDAK LENGKAP (<span id="countBad">0</span>)
+        <button class="btn-khas" style="background: #e63946;" onclick="pilihKelas('REKOD', 'LAMA')">
+            ⚠️ REKOD LAMA / TIDAK LENGKAP (<span id="countBad">0</span>)
         </button>
 
-        <div class="tahun-label">TAHUN 1</div>
+        <div class="tahun-label">PENGURUSAN KELAS</div>
         <div class="btn-folder" onclick="pilihKelas('1', 'DELIMA')">1 DELIMA</div>
         <div class="btn-folder" onclick="pilihKelas('1', 'ZAMRUD')">1 ZAMRUD</div>
-        <div class="tahun-label">TAHUN 2-6</div>
-        <div class="btn-folder" onclick="pilihKelas('2', 'DELIMA')">2D</div>
-        <div class="btn-folder" onclick="pilihKelas('2', 'ZAMRUD')">2Z</div>
-        <div class="btn-folder" onclick="pilihKelas('3', 'DELIMA')">3D</div>
-        <div class="btn-folder" onclick="pilihKelas('3', 'ZAMRUD')">3Z</div>
-        <div class="btn-folder" onclick="pilihKelas('4', 'DELIMA')">4D</div>
-        <div class="btn-folder" onclick="pilihKelas('4', 'ZAMRUD')">4Z</div>
-        <div class="btn-folder" onclick="pilihKelas('5', 'DELIMA')">5D</div>
-        <div class="btn-folder" onclick="pilihKelas('5', 'ZAMRUD')">5Z</div>
-        <div class="btn-folder" onclick="pilihKelas('6', 'DELIMA')">6D</div>
-        <div class="btn-folder" onclick="pilihKelas('6', 'ZAMRUD')">6Z</div>
+        <div class="btn-folder" onclick="pilihKelas('2', 'DELIMA')">2 DELIMA</div>
+        <div class="btn-folder" onclick="pilihKelas('2', 'ZAMRUD')">2 ZAMRUD</div>
+        <div class="btn-folder" onclick="pilihKelas('3', 'DELIMA')">3 DELIMA</div>
+        <div class="btn-folder" onclick="pilihKelas('3', 'ZAMRUD')">3 ZAMRUD</div>
+        <div class="btn-folder" onclick="pilihKelas('4', 'DELIMA')">4 DELIMA</div>
+        <div class="btn-folder" onclick="pilihKelas('4', 'ZAMRUD')">4 ZAMRUD</div>
+        <div class="btn-folder" onclick="pilihKelas('5', 'DELIMA')">5 DELIMA</div>
+        <div class="btn-folder" onclick="pilihKelas('5', 'ZAMRUD')">5 ZAMRUD</div>
+        <div class="btn-folder" onclick="pilihKelas('6', 'DELIMA')">6 DELIMA</div>
+        <div class="btn-folder" onclick="pilotKelas('6', 'ZAMRUD')">6 ZAMRUD</div>
 
-        <button class="btn-khas" style="background: var(--success);" onclick="bukaKehadiran()">📅 SEMAK KEHADIRAN</button>
-        <button class="btn-khas" style="background: var(--danger);" onclick="bukaPendaftaran()">➕ DAFTAR BARU</button>
+        <button class="btn-khas" style="background: var(--success);" onclick="bukaPendaftaran()">➕ DAFTAR MURID BARU</button>
     </div>
 </div>
 
 <div id="senaraiView">
-    <button onclick="kembali()" style="padding:10px; margin-bottom:10px;">⬅️ KEMBALI</button>
-    <h3 id="labelKelas">SENARAI</h3>
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+        <button class="btn-back" onclick="kembali()" style="padding:10px 15px; border-radius:10px; background:var(--dark); color:white; border:none;">⬅️ KEMBALI</button>
+        <h3 id="labelKelas" style="margin:0;">SENARAI</h3>
+    </div>
     <div id="muridContainer"></div>
 </div>
 
 <div id="daftarView">
-    <button onclick="kembali()" style="padding:10px; margin-bottom:10px;">⬅️ KEMBALI</button>
-    <div style="background:white; padding:20px; border-radius:15px;">
-        <input type="text" id="regUid" placeholder="ID Kad" readonly>
+    <button onclick="kembali()" style="padding:10px 15px; margin-bottom:15px; border-radius:10px; background:var(--dark); color:white; border:none;">⬅️ KEMBALI</button>
+    <div style="background:white; padding:20px; border-radius:20px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+        <label style="font-size:0.8rem; font-weight:bold;">ID KAD:</label>
+        <input type="text" id="regUid" placeholder="ID Kad" readonly style="background:#eee;">
+        <label style="font-size:0.8rem; font-weight:bold;">NAMA MURID:</label>
         <input type="text" id="regNama" placeholder="NAMA PENUH">
-        <select id="regTahun">
-            <option value="">Pilih Tahun</option>
-            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-        </select>
-        <select id="regNamaKelas">
-            <option value="">Pilih Kelas</option>
-            <option value="DELIMA">DELIMA</option>
-            <option value="ZAMRUD">ZAMRUD</option>
-        </select>
-        <button class="btn-aksi" style="background:var(--primary); width:100%" onclick="simpanMurid()">SIMPAN</button>
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1">
+                <label style="font-size:0.8rem; font-weight:bold;">TAHUN:</label>
+                <select id="regTahun">
+                    <option value="">- PILIH -</option>
+                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                    <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                </select>
+            </div>
+            <div style="flex:1">
+                <label style="font-size:0.8rem; font-weight:bold;">KELAS:</label>
+                <select id="regNamaKelas">
+                    <option value="">- PILIH -</option>
+                    <option value="DELIMA">DELIMA</option>
+                    <option value="ZAMRUD">ZAMRUD</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn-aksi" style="background:var(--primary); width:100%; margin-top:10px;" onclick="simpanMurid()">SIMPAN MAKLUMAT</button>
     </div>
 </div>
 
 <script>
+    // --- KONFIGURASI FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyAejpV7AXCzbPKhsmSo3jSmzggjxZ8eK3o",
         authDomain: "sistem-merit-sk-melekek.firebaseapp.com",
@@ -123,7 +129,7 @@
     let databaseMurid = [];
     let curTahun = "", curKelas = "";
 
-    // Sync Data & Filter Rekod Tidak Lengkap
+    // Sync Data Pantas
     db.ref('pelajar').on('value', snap => {
         const data = snap.val();
         databaseMurid = [];
@@ -132,6 +138,7 @@
             for(let key in data) {
                 let m = { uid: key, ...data[key] };
                 databaseMurid.push(m);
+                // Jika maklumat tahun/kelas tiada, ia dianggap rekod lama/tidak lengkap
                 if(!m.tahun || !m.namaKelas) badCount++;
             }
         }
@@ -139,7 +146,7 @@
         if(document.getElementById('senaraiView').style.display === 'block') reRender();
     });
 
-    // --- FUNGSI NFC ---
+    // --- LOGIK NFC ---
     async function mulaScanNFC() {
         if ('NDEFReader' in window) {
             try {
@@ -148,83 +155,98 @@
                 document.getElementById('btnNFCMain').innerText = "SILA SENTUH KAD...";
                 ndef.onreading = event => {
                     const uid = event.serialNumber.replace(/:/g, "").toUpperCase();
-                    prosesNFC(uid);
+                    window.navigator.vibrate(100);
+                    prosesHasilNFC(uid);
                 };
-            } catch (e) { alert("NFC Error: " + e); }
-        } else { alert("Guna Chrome Android untuk NFC."); }
+            } catch (e) { alert("Sila benarkan akses NFC."); }
+        } else { alert("NFC tidak disokong pada pelayar ini."); }
     }
 
-    function prosesNFC(uid) {
+    function prosesHasilNFC(uid) {
         const m = databaseMurid.find(x => x.uid === uid);
         if(m) {
+            // Tunjuk Popup Nama & Skor
             document.getElementById('nfcNama').innerText = m.nama;
-            document.getElementById('nfcKelas').innerText = (m.tahun && m.namaKelas) ? `Kelas: ${m.tahun} ${m.namaKelas}` : "⚠️ MAKLUMAT TIDAK LENGKAP";
+            document.getElementById('nfcKelas').innerText = (m.tahun && m.namaKelas) ? `KELAS: ${m.tahun} ${m.namaKelas}` : "⚠️ REKOD LAMA / TIDAK LENGKAP";
             document.getElementById('nfcSkor').innerText = m.markah || 0;
             
-            // Set butang markah
-            document.getElementById('btnNfcTambah').onclick = () => tukarMarkah(uid, 5, true);
-            document.getElementById('btnNfcTolak').onclick = () => tukarMarkah(uid, -5, true);
+            document.getElementById('btnNfcTambah').onclick = () => updateMarkah(uid, 5, true);
+            document.getElementById('btnNfcTolak').onclick = () => updateMarkah(uid, -5, true);
             
             document.getElementById('nfcPopup').style.display = 'block';
             document.getElementById('overlay').style.display = 'block';
         } else {
+            // Jika Kad Baru
             bukaPendaftaran();
             document.getElementById('regUid').value = uid;
+            alert("Kad Baru Dikesan! Sila daftar.");
         }
-        document.getElementById('btnNFCMain').innerText = "📡 IMBAS KAD (NFC)";
+        document.getElementById('btnNFCMain').innerText = "📡 IMBAS KAD (NFC TELEFON)";
     }
 
-    // --- RENDER ---
+    // --- LOGIK UI & CRUD ---
     function pilihKelas(t, k) {
         curTahun = t; curKelas = k;
         document.getElementById('menuUtama').style.display = 'none';
         document.getElementById('senaraiView').style.display = 'block';
-        document.getElementById('labelKelas').innerText = (t === 'TIDAK_LENGKAP') ? "REKOD TIDAK LENGKAP" : `KELAS ${t} ${k}`;
+        document.getElementById('labelKelas').innerText = (t === 'REKOD') ? "REKOD TIDAK LENGKAP" : `TAHUN ${t} ${k}`;
         reRender();
     }
 
     function reRender() {
         const container = document.getElementById('muridContainer');
         container.innerHTML = "";
-        let list = [];
-        if(curTahun === 'TIDAK_LENGKAP') {
-            list = databaseMurid.filter(m => !m.tahun || !m.namaKelas);
+        let filtered = [];
+
+        if(curTahun === 'REKOD') {
+            filtered = databaseMurid.filter(m => !m.tahun || !m.namaKelas);
         } else {
-            list = databaseMurid.filter(m => m.tahun == curTahun && m.namaKelas == curKelas);
+            filtered = databaseMurid.filter(m => m.tahun == curTahun && m.namaKelas == curKelas);
         }
 
-        list.forEach(m => {
+        if(filtered.length === 0) container.innerHTML = "<p style='text-align:center; padding:20px;'>Tiada rekod ditemui.</p>";
+
+        filtered.sort((a,b) => b.markah - a.markah).forEach(m => {
             const div = document.createElement('div');
             div.className = 'murid-item';
             div.innerHTML = `
-                <b>${m.nama}</b><br><small>Skor: ${m.markah || 0}</small>
+                <div style="display:flex; justify-content:space-between;">
+                    <b>${m.nama}</b>
+                    <b style="color:var(--primary)">${m.markah || 0}</b>
+                </div>
                 <div style="margin-top:10px; display:flex; gap:5px;">
-                    <button class="btn-aksi" style="background:var(--success)" onclick="tukarMarkah('${m.uid}', 5)">+5</button>
-                    <button class="btn-aksi" style="background:var(--danger)" onclick="tukarMarkah('${m.uid}', -5)">-5</button>
-                    <button class="btn-aksi" style="background:var(--dark)" onclick="bukaEdit('${m.uid}')">EDIT</button>
+                    <button class="btn-aksi" style="background:var(--success); padding:8px;" onclick="updateMarkah('${m.uid}', 5)">+5</button>
+                    <button class="btn-aksi" style="background:var(--danger); padding:8px;" onclick="updateMarkah('${m.uid}', -5)">-5</button>
+                    <button class="btn-aksi" style="background:var(--dark); padding:8px;" onclick="bukaEdit('${m.uid}')">KEMASKINI</button>
                 </div>`;
             container.appendChild(div);
         });
     }
 
-    function tukarMarkah(uid, pts, isNfc = false) {
-        db.ref('pelajar/' + uid + '/markah').transaction(cur => {
-            const newSkor = (cur || 0) + pts;
-            if(isNfc) document.getElementById('nfcSkor').innerText = newSkor;
-            return newSkor;
+    function updateMarkah(uid, pts, isNfc = false) {
+        db.ref('pelajar/' + uid + '/markah').transaction(current => {
+            const result = (current || 0) + pts;
+            if(isNfc) document.getElementById('nfcSkor').innerText = result;
+            return result;
         });
     }
 
     function simpanMurid() {
         const uid = document.getElementById('regUid').value;
-        const data = {
-            nama: document.getElementById('regNama').value.toUpperCase(),
-            tahun: document.getElementById('regTahun').value,
-            namaKelas: document.getElementById('regNamaKelas').value
-        };
-        if(uid && data.nama && data.tahun) {
-            db.ref('pelajar/' + uid).update(data).then(() => kembali());
-        }
+        const nama = document.getElementById('regNama').value.toUpperCase().trim();
+        const thn = document.getElementById('regTahun').value;
+        const kls = document.getElementById('regNamaKelas').value;
+
+        if(!uid || !nama || !thn || !kls) return alert("Sila lengkapkan maklumat!");
+
+        db.ref('pelajar/' + uid).update({
+            nama: nama,
+            tahun: thn,
+            namaKelas: kls
+        }).then(() => {
+            alert("Berjaya Disimpan!");
+            kembali();
+        });
     }
 
     function bukaEdit(uid) {
@@ -242,11 +264,13 @@
         document.getElementById('daftarView').style.display = 'block';
         document.getElementById('regUid').value = "";
         document.getElementById('regNama').value = "";
+        // Ambil UID jika ada scan terakhir dari ESP32
+        db.ref('temp_pendaftaran/uid_baru').once('value', s => { if(s.val()) document.getElementById('regUid').value = s.val(); });
     }
 
     function kembali() {
-        document.querySelectorAll('#senaraiView, #daftarView').forEach(v => v.style.display='none');
-        document.getElementById('menuUtama').style.display='block';
+        document.querySelectorAll('#senaraiView, #daftarView').forEach(v => v.style.display = 'none');
+        document.getElementById('menuUtama').style.display = 'block';
     }
 
     function tutupPopup() {
