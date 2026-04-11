@@ -33,8 +33,10 @@
         .flash-merah { background-color: var(--danger) !important; color: white !important; }
 
         .btn-aksi { padding: 15px; border: none; border-radius: 10px; color: white; font-weight: 700; flex: 1; font-size: 1rem; cursor: pointer; }
-        .btn-edit-small { background: #eee; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; color: #555; }
+        /* Keadaan butang semasa disekat seketika */
+        .btn-aksi:disabled { opacity: 0.6; cursor: not-allowed; }
         
+        .btn-edit-small { background: #eee; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; color: #555; }
         .markah-badge { background: var(--dark); color: white; padding: 5px 12px; border-radius: 8px; font-weight: 700; }
         .btn-nfc-main { background: var(--warning); color: black; width: 100%; padding: 18px; border-radius: 20px; font-weight: 800; border: none; margin-bottom: 15px; font-size: 1.1rem; box-shadow: 0 4px 0 #d4ac0d; }
         
@@ -45,7 +47,7 @@
 
 <div class="header">
     <h2 style="margin:0">SK MELEKEK</h2>
-    <small>Sistem Merit (Tekan 10s Pukal)</small>
+    <small>Sistem Merit (Anti-Click v3.1)</small>
 </div>
 
 <div id="menuUtama">
@@ -62,9 +64,6 @@
         <div class="btn-folder" onpointerdown="startPress(6)" onpointerup="endPress(6)" onpointerleave="endPress(6)">TAHUN 6</div>
         <div class="btn-folder btn-daftar-folder" onclick="bukaPendaftaran()">➕ DAFTAR KAD BAHARU</div>
     </div>
-    <p style="text-align:center; font-size:0.75rem; color:#666; margin-top:15px; padding:0 10px;">
-        💡 <b>Tips:</b> Tekan & tahan butang kelas selama <b>10 saat</b> untuk tambah markah satu kelas sekaligus.
-    </p>
 </div>
 
 <div id="senaraiView">
@@ -78,7 +77,7 @@
 <div id="daftarView">
     <div class="nav-header">
         <button class="btn-back" onclick="kembali()">⬅️ KEMBALI</button>
-        <h3 id="labelDaftar" style="margin:0; color: var(--danger);">DAFTAR MURID</h3>
+        <h3 id="labelDaftar" style="margin:0; color: var(--danger);">BORANG MURID</h3>
     </div>
     <div style="background: white; padding: 20px; border-radius: 15px; border: 2px solid #eee;">
         <input type="text" id="regUid" placeholder="ID Kad" readonly style="background: #f1f1f1;">
@@ -108,6 +107,7 @@
     let modeCarianGlobal = false;
     let pressTimer;
     let longPressActive = false;
+    let isButtonsLocked = false; // Flag untuk sekat butang
 
     db.ref('pelajar').on('value', snap => {
         const data = snap.val();
@@ -116,62 +116,50 @@
         if(tahunDipilih || modeCarianGlobal) reRender();
     });
 
-    // LOGIK TEKAN LAMA TEPAT 10 SAAT
     function startPress(tahun) {
         longPressActive = false;
-        // 10000ms = 10 saat
         pressTimer = window.setTimeout(function() {
             longPressActive = true;
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 100]);
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
             updateMarkahKelas(tahun);
         }, 10000); 
     }
 
     function endPress(tahun) {
         clearTimeout(pressTimer);
-        // Jika dilepaskan kurang dari 10 saat, ia buka folder seperti biasa
         if (!longPressActive && event.type === 'pointerup') {
             pilihTahun(tahun);
         }
     }
 
     function updateMarkahKelas(t) {
-        let n = prompt("KEMASKINI SEMUA MURID TAHUN " + t + "\nMasukkan jumlah markah (cth: 10 atau -10):", "0");
-        
-        if (n !== null && n !== "" && n !== "0") {
+        let n = prompt("KEMASKINI SEMUA MURID TAHUN " + t + "\nJumlah markah (+/-):", "0");
+        if (n && n !== "0") {
             let pts = parseInt(n);
             let muridKelas = databaseMurid.filter(m => parseInt(m.tahun) === t);
-            
-            if (muridKelas.length > 0) {
-                if(confirm("Kemaskini " + pts + " markah kepada " + muridKelas.length + " murid?")) {
-                    muridKelas.forEach(m => {
-                        db.ref('pelajar/' + m.uid + '/markah').transaction(cur => (cur || 0) + pts);
-                    });
-                }
-            } else {
-                alert("Tiada murid berdaftar dalam kelas ini.");
+            if (muridKelas.length > 0 && confirm("Kemaskini markah?")) {
+                muridKelas.forEach(m => db.ref('pelajar/' + m.uid + '/markah').transaction(cur => (cur || 0) + pts));
             }
         }
     }
 
-    // FUNGSI LAIN (CARIAN/NAVIGASI/EDIT)
-    function carianGlobal() {
-        const keyword = document.getElementById('cariUtama').value.trim();
-        if(keyword.length > 0) {
-            modeCarianGlobal = true; tahunDipilih = null;
-            document.getElementById('folderContainer').style.display = 'none';
-            document.getElementById('senaraiView').style.display = 'block';
-            document.getElementById('labelTahun').innerText = "HASIL CARIAN";
-            reRender();
-        } else { kembali(); }
-    }
-
     function pilihTahun(t) {
-        tahunDipilih = t; modeCarianGlobal = false;
+        tahunDipilih = t;
+        modeCarianGlobal = false;
+        
+        // SEKAT BUTANG SEKETIKA (Anti-Ghost Click)
+        isButtonsLocked = true;
+        
         document.getElementById('menuUtama').style.display = 'none';
         document.getElementById('senaraiView').style.display = 'block';
         document.getElementById('labelTahun').innerText = "TAHUN " + t;
         reRender();
+
+        // Aktifkan semula butang selepas 500ms
+        setTimeout(() => {
+            isButtonsLocked = false;
+            document.querySelectorAll('.btn-aksi').forEach(btn => btn.disabled = false);
+        }, 500);
     }
 
     function kembali() {
@@ -188,6 +176,7 @@
         container.innerHTML = "";
         let filtered = modeCarianGlobal ? databaseMurid.filter(m => m.nama.toLowerCase().includes(document.getElementById('cariUtama').value.toLowerCase())) : databaseMurid.filter(m => parseInt(m.tahun) === tahunDipilih);
         filtered.sort((a, b) => b.markah - a.markah);
+        
         filtered.forEach(m => {
             const div = document.createElement('div');
             div.className = 'murid-item';
@@ -201,8 +190,8 @@
                     </div>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:12px;">
-                    <button class="btn-aksi" style="background:var(--success)" onclick="aksiMarkah('${m.uid}', 5)">+5</button>
-                    <button class="btn-aksi" style="background:var(--danger)" onclick="aksiMarkah('${m.uid}', -5)">-5</button>
+                    <button class="btn-aksi" ${isButtonsLocked ? 'disabled' : ''} style="background:var(--success)" onclick="aksiMarkah('${m.uid}', 5)">+5</button>
+                    <button class="btn-aksi" ${isButtonsLocked ? 'disabled' : ''} style="background:var(--danger)" onclick="aksiMarkah('${m.uid}', -5)">-5</button>
                 </div>
             `;
             container.appendChild(div);
@@ -210,11 +199,23 @@
     }
 
     function aksiMarkah(uid, pts) {
+        if (isButtonsLocked) return; // Jangan buat apa-apa jika terkunci
         if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
         const el = document.getElementById(`card-${uid}`);
         el.classList.add(pts > 0 ? 'flash-hijau' : 'flash-merah');
         db.ref('pelajar/' + uid + '/markah').transaction(cur => (cur || 0) + pts);
         setTimeout(() => { if(el) el.classList.remove('flash-hijau', 'flash-merah'); }, 500);
+    }
+
+    function carianGlobal() {
+        const keyword = document.getElementById('cariUtama').value.trim();
+        if(keyword.length > 0) {
+            modeCarianGlobal = true;
+            document.getElementById('folderContainer').style.display = 'none';
+            document.getElementById('senaraiView').style.display = 'block';
+            document.getElementById('labelTahun').innerText = "HASIL CARIAN";
+            reRender();
+        } else { kembali(); }
     }
 
     function bukaPendaftaran(uid = "") {
@@ -223,6 +224,7 @@
         document.getElementById('btnPadam').style.display = 'none';
         document.getElementById('regUid').value = uid;
         document.getElementById('regNama').value = "";
+        document.getElementById('regTahun').value = "";
     }
 
     function bukaEdit(uid) {
