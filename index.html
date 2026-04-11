@@ -11,48 +11,73 @@
         :root { --primary: #4361ee; --success: #2ecc71; --danger: #ef476f; --dark: #2b2d42; --bg: #f8f9fa; }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 10px; -webkit-tap-highlight-color: transparent; }
         
-        .header { text-align: center; padding: 15px; background: linear-gradient(135deg, var(--primary), #3f37c9); color: white; border-radius: 15px; margin-bottom: 10px; }
+        .header { text-align: center; padding: 15px; background: linear-gradient(135deg, var(--primary), #3f37c9); color: white; border-radius: 15px; margin-bottom: 15px; }
         
-        /* Butang Pengaktifan Wajib */
-        .activation-box { background: #fff3cd; border: 2px solid #ffeeba; padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 15px; }
+        /* Menu Utama (Tahun) */
+        .grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn-tahun { background: white; border: 2px solid var(--primary); color: var(--primary); padding: 30px 10px; border-radius: 15px; font-weight: 600; font-size: 1.2rem; cursor: pointer; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .btn-tahun:active { background: var(--primary); color: white; }
+
+        /* Paparan Murid */
+        .view-section { display: none; }
+        .nav-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .btn-back { background: var(--dark); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+
+        .murid-item { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee; transition: all 0.3s ease; }
         
-        .tahun-card { background: white; border-radius: 12px; margin-bottom: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .tahun-header { padding: 15px; background: #fff; border-bottom: 1px solid #eee; font-weight: 600; display: flex; justify-content: space-between; }
-        
-        /* Maklumbalas Visual Murid */
-        .murid-item { padding: 15px; transition: all 0.2s ease; border-bottom: 1px solid #f1f1f1; }
-        .status-tambah { background-color: #d4edda !important; border-left: 10px solid var(--success); }
-        .status-tolak { background-color: #f8d7da !important; border-left: 10px solid var(--danger); }
-        
-        .btn { padding: 15px; border: none; border-radius: 10px; color: white; font-weight: 600; font-size: 1rem; touch-action: manipulation; }
-        .btn-nfc { background: var(--primary); width: 100%; box-shadow: 0 4px 0 #2b44b0; }
-        .btn-nfc:active { transform: translateY(4px); box-shadow: none; }
-        
+        /* KESAN BERCAHAYA (GLOW) */
+        .glow-hijau { 
+            background-color: #e8fcf0 !important; 
+            border: 2px solid var(--success) !important;
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.6);
+            transform: scale(1.02);
+        }
+        .glow-merah { 
+            background-color: #fff5f6 !important; 
+            border: 2px solid var(--danger) !important;
+            box-shadow: 0 0 20px rgba(239, 71, 111, 0.6);
+            transform: scale(1.02);
+        }
+
+        .btn { padding: 12px; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; touch-action: manipulation; }
         .btn-merit { background: var(--success); flex: 1; }
         .btn-demerit { background: var(--danger); flex: 1; }
         
-        .markah-badge { background: var(--dark); color: white; padding: 5px 10px; border-radius: 8px; font-weight: bold; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        .markah-badge { background: var(--dark); color: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        
+        .nfc-active-btn { background: #ffbe0b; color: #000; width: 100%; padding: 15px; border-radius: 15px; font-weight: bold; border: none; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
 <div class="header">
     <h3 style="margin:0">SK MELEKEK</h3>
-    <small>Sistem Merit-Demerit</small>
+    <small>Pengurusan Merit-Demerit</small>
 </div>
 
-<div class="activation-box">
-    <button class="btn btn-nfc" onpointerdown="mulaSistem()">📲 AKTIFKAN NFC & GETARAN</button>
-    <p id="statusTxt" style="font-size: 0.7rem; margin-top: 10px; color: #856404;">Klik butang ini sekali setiap kali buka web.</p>
+<div id="menuUtama">
+    <button class="nfc-active-btn" onclick="mulaNFC()">📲 AKTIFKAN NFC & GETARAN</button>
+    <div class="grid-menu">
+        <div class="btn-tahun" onclick="bukaTahun(1)">TAHUN 1</div>
+        <div class="btn-tahun" onclick="bukaTahun(2)">TAHUN 2</div>
+        <div class="btn-tahun" onclick="bukaTahun(3)">TAHUN 3</div>
+        <div class="btn-tahun" onclick="bukaTahun(4)">TAHUN 4</div>
+        <div class="btn-tahun" onclick="bukaTahun(5)">TAHUN 5</div>
+        <div class="btn-tahun" onclick="bukaTahun(6)">TAHUN 6</div>
+    </div>
 </div>
 
-<input type="text" id="cari" placeholder="🔍 Cari nama murid..." oninput="nfcFokusUid=''; paparTahun()">
-
-<div id="mainContainer"></div>
+<div id="senaraiMuridView" class="view-section">
+    <div class="nav-bar">
+        <button class="btn-back" onclick="kembaliKeMenu()">⬅️ KEMBALI</button>
+        <h3 id="tajukTahun" style="margin:0; color: var(--primary);"></h3>
+    </div>
+    <input type="text" id="cari" placeholder="🔍 Cari nama murid..." oninput="filterMurid()">
+    <div id="muridContainer"></div>
+</div>
 
 <script>
-    // Konfigurasi Firebase anda
     const firebaseConfig = {
         apiKey: "AIzaSyAejpV7AXCzbPKhsmSo3jSmzggjxZ8eK3o",
         authDomain: "sistem-merit-sk-melekek.firebaseapp.com",
@@ -63,99 +88,97 @@
     const db = firebase.database();
     
     let semuaMurid = [];
-    let nfcFokusUid = "";
+    let tahunSemasa = null;
 
-    // 1. Ambil Data
     db.ref('pelajar').on('value', s => {
         const data = s.val();
         semuaMurid = [];
         for(let id in data) { semuaMurid.push({uid:id, ...data[id]}); }
-        paparTahun();
+        if(tahunSemasa) paparMurid(tahunSemasa);
     });
 
-    // 2. Fungsi Paparan
-    function paparTahun() {
-        const container = document.getElementById('mainContainer');
+    function bukaTahun(t) {
+        tahunSemasa = t;
+        document.getElementById('menuUtama').style.display = 'none';
+        document.getElementById('senaraiMuridView').style.display = 'block';
+        document.getElementById('tajukTahun').innerText = "TAHUN " + t;
+        paparMurid(t);
+    }
+
+    function kembaliKeMenu() {
+        tahunSemasa = null;
+        document.getElementById('menuUtama').style.display = 'block';
+        document.getElementById('senaraiMuridView').style.display = 'none';
+        document.getElementById('cari').value = "";
+    }
+
+    function paparMurid(t, idFokus = null) {
+        const container = document.getElementById('muridContainer');
         const cari = document.getElementById('cari').value.toLowerCase().trim();
         container.innerHTML = "";
 
-        for (let t = 1; t <= 6; t++) {
-            let senarai = semuaMurid.filter(m => parseInt(m.tahun) === t);
-            
-            if (nfcFokusUid !== "") {
-                senarai = senarai.filter(m => m.uid === nfcFokusUid);
-            } else if (cari !== "") {
-                senarai = senarai.filter(m => m.nama.toLowerCase().includes(cari));
-            }
-
-            if (senarai.length > 0) {
-                const card = document.createElement('div');
-                card.className = 'tahun-card';
-                card.innerHTML = `
-                    <div class="tahun-header">TAHUN ${t} <span>${senarai.length} Murid</span></div>
-                    <div class="tahun-content">
-                        ${senarai.map(m => `
-                            <div class="murid-item" id="row-${m.uid}">
-                                <div style="display:flex; justify-content:space-between; align-items:center">
-                                    <div><b>${m.nama}</b><br><small>${m.uid}</small></div>
-                                    <div class="markah-badge">${m.markah}</div>
-                                </div>
-                                <div style="display:flex; gap:10px; margin-top:12px;">
-                                    <button class="btn btn-merit" onpointerdown="kemaskini('${m.uid}', 5)">+5 Merit</button>
-                                    <button class="btn btn-demerit" onpointerdown="kemaskini('${m.uid}', -5)">-5 Demerit</button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>`;
-                container.appendChild(card);
-            }
+        let senarai = semuaMurid.filter(m => parseInt(m.tahun) === t);
+        
+        if(idFokus) {
+            senarai = senarai.filter(m => m.uid === idFokus);
+        } else if (cari !== "") {
+            senarai = senarai.filter(m => m.nama.toLowerCase().includes(cari));
         }
+
+        senarai.forEach(m => {
+            const div = document.createElement('div');
+            div.className = 'murid-item';
+            div.id = `item-${m.uid}`;
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <div><b>${m.nama}</b><br><small>${m.uid}</small></div>
+                    <div class="markah-badge">${m.markah} PT</div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:12px;">
+                    <button class="btn btn-merit" onpointerdown="kemaskini('${m.uid}', 5)">+5 MERIT</button>
+                    <button class="btn btn-demerit" onpointerdown="kemaskini('${m.uid}', -5)">-5 DEMERIT</button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
     }
 
-    // 3. Fungsi Utama (Getaran & Warna)
     function kemaskini(uid, nilai) {
-        // GETARAN AGRESIF
-        if (navigator.vibrate) {
-            navigator.vibrate([100, 50, 100]);
-        }
+        if (navigator.vibrate) navigator.vibrate([70, 40, 70]);
 
-        const el = document.getElementById(`row-${uid}`);
-        const warnaKelas = nilai > 0 ? 'status-tambah' : 'status-tolak';
+        const el = document.getElementById(`item-${uid}`);
+        const kelasGlow = nilai > 0 ? 'glow-hijau' : 'glow-merah';
 
-        // TUKAR WARNA
-        el.classList.add(warnaKelas);
+        // Efek Visual Bercahaya
+        el.classList.add(kelasGlow);
         
-        // SIMPAN KE FIREBASE
         db.ref('pelajar/'+uid+'/markah').transaction(c => (c || 0) + nilai);
 
-        // RESET WARNA SELEPAS 1 SAAT
         setTimeout(() => {
-            el.classList.remove('status-tambah', 'status-tolak');
-        }, 1000);
+            el.classList.remove('glow-hijau', 'glow-merah');
+        }, 800);
     }
 
-    // 4. Aktifkan Sistem (Wajib Klik)
-    async function mulaSistem() {
+    function filterMurid() {
+        paparMurid(tahunSemasa);
+    }
+
+    async function mulaNFC() {
         if (navigator.vibrate) navigator.vibrate(100);
-        const status = document.getElementById('statusTxt');
-        
         if ('NDEFReader' in window) {
             try {
                 const ndef = new NDEFReader();
                 await ndef.scan();
-                status.innerText = "✅ SISTEM AKTIF & SEDIA IMBAS";
-                status.style.color = "green";
-                
+                alert("NFC & Getaran diaktifkan!");
                 ndef.onreading = event => {
-                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                    const idScan = event.serialNumber.replace(/:/g, "").toUpperCase();
-                    nfcFokusUid = idScan;
-                    document.getElementById('cari').value = "";
-                    paparTahun();
+                    const uid = event.serialNumber.replace(/:/g, "").toUpperCase();
+                    const m = semuaMurid.find(x => x.uid === uid);
+                    if(m) {
+                        bukaTahun(parseInt(m.tahun));
+                        paparMurid(parseInt(m.tahun), uid);
+                    }
                 };
-            } catch (e) { status.innerText = "Ralat: Sila benarkan kebenaran NFC."; }
-        } else {
-            alert("Sila gunakan Google Chrome pada Android.");
+            } catch (e) { alert("Sila benarkan akses NFC."); }
         }
     }
 </script>
