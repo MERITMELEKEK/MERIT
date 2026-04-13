@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistem Pintar SK Melekek v23.6</title>
+    <title>Sistem Pintar SK Melekek v23.7</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -30,6 +30,12 @@
         .stats-banner { background: var(--dark); color: white; padding: 12px 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
 
         #formView, #nfcPopup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; padding: 30px 20px; box-sizing: border-box; overflow-y: auto; }
+        
+        /* Gaya baru untuk butang tanda X */
+        .btn-status { width: 45px; height: 45px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .status-hadir { background: var(--success); color: white; }
+        .status-absen { background: #fee2e2; color: var(--danger); }
+
         input, select { width: 100%; padding: 16px; border-radius: 16px; border: 2px solid #eee; margin-bottom: 15px; font-family: inherit; }
     </style>
 </head>
@@ -37,7 +43,7 @@
 
 <div class="top-bar">
     <h2>SK MELEKEK</h2>
-    <p style="margin:0; opacity:0.8; font-size:0.8rem;">Sistem Pengurusan v23.6</p>
+    <p style="margin:0; opacity:0.8; font-size:0.8rem;">Sistem Pengurusan v23.7</p>
 </div>
 
 <div class="search-container">
@@ -48,7 +54,7 @@
     <div id="menuFolder">
         <div class="section-title">Aksi Pantas</div>
         <div class="grid-menu">
-            <div class="card-btn card-full" style="background:var(--dark); color:white;" onclick="mulaScanNFC()">📡 IMBAS KAD NFC</div>
+            <div id="nfcStatusBtn" class="card-btn card-full" style="background:var(--dark); color:white;" onclick="mulaScanNFC()">📡 IMBAS KAD NFC</div>
             <div class="card-btn" style="color:var(--success)" onclick="bukaKehadiran()">📅 KEHADIRAN</div>
             <div class="card-btn" style="color:var(--rmt)" onclick="bukaRMT()">🍲 MENU RMT</div>
         </div>
@@ -85,7 +91,7 @@
 
 <div id="formView">
     <h2 id="formTitle">Daftar Murid</h2>
-    <input type="text" id="regUid" placeholder="UID KAD (Imbas)">
+    <input type="text" id="regUid" placeholder="UID KAD (Imbas Kad Sekarang)">
     <input type="text" id="regNama" placeholder="NAMA PENUH">
     <div style="display:flex; gap:10px;">
         <select id="regTahun"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select>
@@ -100,7 +106,6 @@
 </div>
 
 <script>
-    // KONFIGURASI FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyAejpV7AXCzbPKhsmSo3jSmzggjxZ8eK3o",
         authDomain: "sistem-merit-sk-melekek.firebaseapp.com",
@@ -112,8 +117,49 @@
 
     let databaseMurid = [];
     let isRMTMode = false;
+    let nfcReader = null;
 
-    // 1. KEMASKINI RANKING 3 TERBAIK UNTUK ESP32
+    // --- FUNGSI NFC ---
+    async function mulaScanNFC() {
+        if (!('NDEFReader' in window)) {
+            alert("NFC tidak disokong pada peranti/pelayar ini.");
+            return;
+        }
+
+        try {
+            const btnNfc = document.getElementById('nfcStatusBtn');
+            btnNfc.innerText = "⌛ SEDANG MENGIMBAS...";
+            btnNfc.style.background = "#ff9f43";
+
+            nfcReader = new NDEFReader();
+            await nfcReader.scan();
+            
+            nfcReader.onreading = event => {
+                const uid = event.serialNumber.replace(/:/g, "").toUpperCase();
+                
+                // Jika sedang buka borang daftar, masukkan UID ke input
+                if(document.getElementById('formView').style.display === "block") {
+                    document.getElementById('regUid').value = uid;
+                    if(window.navigator.vibrate) window.navigator.vibrate(100);
+                } else {
+                    // Jika di menu utama, cari murid
+                    const m = databaseMurid.find(x => x.uid === uid);
+                    if(m) {
+                        alert(`Murid: ${m.nama}\nMarkah: ${m.markah || 0}`);
+                    } else {
+                        if(confirm("Kad tidak berdaftar. Daftar sekarang?")) {
+                            bukaDaftar();
+                            document.getElementById('regUid').value = uid;
+                        }
+                    }
+                }
+            };
+        } catch (error) {
+            alert("Ralat NFC: " + error);
+        }
+    }
+
+    // --- PENGURUSAN DATA ---
     async function kemaskiniRanking(tahun) {
         const snap = await db.ref('pelajar').orderByChild('tahun').equalTo(tahun.toString()).once('value');
         const data = snap.val();
@@ -123,17 +169,11 @@
                 senarai.push({ nama: data[id].nama, markah: data[id].markah || 0 });
             }
         }
-        // Susun markah tertinggi
         senarai.sort((a,b) => b.markah - a.markah);
-        
-        // Ambil Top 3 sahaja
         let top3 = {};
         for(let i=0; i<3; i++) {
             if(senarai[i]) {
-                top3[i+1] = {
-                    n: senarai[i].nama.substring(0,16), // Pendekkan untuk LCD
-                    m: senarai[i].markah
-                };
+                top3[i+1] = { n: senarai[i].nama.substring(0,16), m: senarai[i].markah };
             } else {
                 top3[i+1] = { n: "-", m: 0 };
             }
@@ -141,7 +181,6 @@
         await db.ref('ranking/T' + tahun).set(top3);
     }
 
-    // 2. NAVIGASI & RENDER
     function kembali() {
         document.querySelectorAll('.view-section').forEach(v => v.style.display = 'none');
         document.getElementById('menuFolder').style.display = 'block';
@@ -169,7 +208,6 @@
         const tkh = document.getElementById('tarikhHadir').value;
         const thn = document.getElementById('selTahun').value;
         const kls = document.getElementById('selKelas').value;
-        
         const snapHadir = await db.ref('kehadiran/' + tkh).once('value');
         const dataHadir = snapHadir.val() || {};
 
@@ -185,9 +223,10 @@
             html += `<tr style="border-bottom:1px solid #eee;">
                 <td style="padding:15px 0;"><b>${m.nama}</b></td>
                 <td style="text-align:right;">
-                    <button class="btn-aksi ${hadir ? 'btn-hadir' : 'btn-tidak'}" 
-                    style="background:${hadir ? '#2ecc71' : '#eee'}; color:${hadir ? '#white' : '#888'}; min-width:80px;"
-                    onclick="toggleHadir('${m.uid}', ${!hadir})">${hadir ? 'HADIR' : 'ABSEN'}</button>
+                    <button class="btn-status ${hadir ? 'status-hadir' : 'status-absen'}" 
+                    onclick="toggleHadir('${m.uid}', ${!hadir})">
+                        ${hadir ? '✓' : 'X'}
+                    </button>
                 </td>
             </tr>`;
         });
@@ -197,15 +236,11 @@
 
     async function toggleHadir(uid, status) {
         const tkh = document.getElementById('tarikhHadir').value;
-        if(status) {
-            await db.ref('kehadiran/' + tkh + '/' + uid).set(true);
-        } else {
-            await db.ref('kehadiran/' + tkh + '/' + uid).remove();
-        }
+        if(status) { await db.ref('kehadiran/' + tkh + '/' + uid).set(true); }
+        else { await db.ref('kehadiran/' + tkh + '/' + uid).remove(); }
         renderKehadiran();
     }
 
-    // 3. PENGURUSAN DATA (SIMPAN / EDIT / PADAM)
     function bukaDaftar() {
         document.getElementById('formTitle').innerText = "Daftar Murid Baru";
         document.getElementById('regUid').value = "";
@@ -238,9 +273,13 @@
             tahun: tahun,
             namaKelas: document.getElementById('regKelas').value,
             rmt: document.getElementById('regRMT').checked,
-            markah: 0 // Hanya set 0 jika pendaftaran baru, update tidak kacau markah
+            // Markah kekal jika sudah ada, 0 jika baru
         });
         
+        // Pastikan markah wujud jika baru daftar
+        const snap = await db.ref('pelajar/' + uid + '/markah').once('value');
+        if(!snap.exists()) await db.ref('pelajar/' + uid + '/markah').set(0);
+
         kemaskiniRanking(tahun);
         tutupForm();
     }
@@ -248,7 +287,7 @@
     async function padamMurid() {
         const uid = document.getElementById('regUid').value;
         const m = databaseMurid.find(x => x.uid === uid);
-        if(confirm("Padam murid ini?")) {
+        if(confirm("Padam murid ini secara kekal?")) {
             await db.ref('pelajar/' + uid).remove();
             if(m) kemaskiniRanking(m.tahun);
             tutupForm();
@@ -257,7 +296,6 @@
 
     function tutupForm() { document.getElementById('formView').style.display = 'none'; }
 
-    // 4. SETUP INTERFACE KELAS
     const grid = document.getElementById('gridKelas');
     for(let t=1; t<=6; t++) {
         ['DELIMA', 'ZAMRUD'].forEach(k => {
@@ -293,6 +331,7 @@
                 </div>
                 <div style="display:flex; gap:10px; margin-top:15px;">
                     <button class="btn-aksi" style="background:var(--success)" onclick="tukarMarkah('${m.uid}', 5)">+5</button>
+                    <button class="btn-aksi" style="background:var(--danger)" onclick="tukarMarkah('${m.uid}', -5)">-5</button>
                     <button class="btn-aksi" style="background:#eee; color:var(--dark)" onclick="bukaEdit('${m.uid}')">EDIT</button>
                 </div>`;
             container.appendChild(div);
