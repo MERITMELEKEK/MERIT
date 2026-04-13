@@ -5,158 +5,164 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sistem Merit SK Melekek</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
-        .bottom-nav { box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
-        .card-murid { transition: transform 0.1s; }
-        .card-murid:active { transform: scale(0.98); }
-        /* Sembunyikan scrollbar */
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: #f1f5f9;
+            -webkit-tap-highlight-color: transparent; 
+        }
+        .glass-header {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .card-murid {
+            transition: transform 0.1s;
+            border: 1px solid rgba(226, 232, 240, 1);
+            touch-action: pan-y; /* Memastikan scroll lancar */
+        }
+        .card-murid:active { background-color: #f8fafc; }
+        
+        .btn-action {
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .confirm-anim { animation: fadeIn 0.2s ease-out; }
     </style>
 </head>
-<body class="pb-24">
+<body class="pb-40">
 
-    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b px-4 py-3 flex justify-between items-center">
+    <header class="sticky top-0 z-40 glass-header px-6 py-5 flex justify-between items-end border-b">
         <div>
-            <h1 class="text-xs font-bold text-blue-900 uppercase tracking-wider">SK Melekek</h1>
-            <h2 id="view-title" class="text-lg font-bold text-gray-800">Semua Murid</h2>
+            <p class="text-[10px] font-extrabold text-blue-600 uppercase tracking-widest mb-1">SK MELEKEK</p>
+            <h2 id="view-title" class="text-2xl font-800 text-slate-900">Semua Murid</h2>
         </div>
-        <div class="flex gap-2">
-            <button onclick="scanNFC()" class="bg-blue-600 text-white p-2 rounded-full shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                </svg>
-            </button>
-            <button onclick="bukaModalMurid()" class="bg-green-500 text-white p-2 rounded-full shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-            </button>
-        </div>
+        <button onclick="mulaScanNFC()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+        </button>
     </header>
 
-    <div class="flex overflow-x-auto p-4 gap-2 no-scrollbar bg-white border-b">
-        <button onclick="paparHome()" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold whitespace-nowrap">Semua</button>
-        <button onclick="tapisRMT()" class="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-full text-sm font-semibold whitespace-nowrap">RMT</button>
-        <div class="h-8 w-[1px] bg-gray-200 mx-1"></div>
-        <script>
-            for(let i=1; i<=6; i++) {
-                document.write(`<button onclick="paparTahun(${i})" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-sm font-semibold whitespace-nowrap">Tahun ${i}</button>`);
-            }
-        </script>
+    <div class="flex overflow-x-auto px-6 py-4 gap-3 no-scrollbar items-center bg-white/50 border-b">
+        <button onclick="paparHome()" class="px-5 py-2.5 bg-white text-slate-900 rounded-xl text-sm font-bold shadow-sm border whitespace-nowrap active:bg-slate-100">Semua</button>
+        <button onclick="tapisRMT()" class="px-5 py-2.5 bg-amber-50 text-amber-700 rounded-xl text-sm font-bold border border-amber-100 whitespace-nowrap active:bg-amber-100">RMT</button>
+        <div id="tahun-filters" class="flex gap-2"></div>
     </div>
 
-    <main id="app-content" class="p-4 space-y-3">
-        <div class="text-center py-10 text-gray-400">Memuatkan data murid...</div>
-    </main>
+    <main id="app-content" class="px-6 py-4 space-y-4">
+        </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-20 px-4 bottom-nav z-50">
-        <button onclick="paparHome()" class="flex flex-col items-center text-blue-600">
+    <button onclick="bukaModalMurid()" class="fixed bottom-28 right-6 z-50 w-16 h-16 bg-blue-600 text-white rounded-2xl shadow-2xl flex items-center justify-center active:scale-90 transition-all border-4 border-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+    </button>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-24 px-8 z-50">
+        <button onclick="paparHome()" class="flex flex-col items-center gap-1 text-blue-600">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-            <span class="text-[10px] mt-1 font-bold">UTAMA</span>
+            <span class="text-[10px] font-bold">UTAMA</span>
         </button>
-        <button onclick="bukaPilihKelas()" class="flex flex-col items-center text-gray-400">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-            <span class="text-[10px] mt-1 font-bold">KELAS</span>
-        </button>
-        <button onclick="tapisRMT()" class="flex flex-col items-center text-gray-400">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-            <span class="text-[10px] mt-1 font-bold">RMT</span>
+        <button onclick="mulaScanNFC()" class="flex flex-col items-center gap-1 text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+            <span class="text-[10px] font-bold">IMBAS</span>
         </button>
     </nav>
 
-    <div id="modal-murid" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-end">
-        <div class="bg-white w-full rounded-t-3xl p-6 pb-10 animate-slide-up">
-            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
-            <h3 class="text-xl font-bold mb-4">Profil Murid</h3>
+    <div id="modal-murid" class="fixed inset-0 bg-slate-900/60 z-[60] hidden flex items-end">
+        <div class="bg-white w-full rounded-t-[32px] p-8 pb-12 animate-slide-up shadow-2xl">
+            <div class="w-12 h-1 bg-slate-200 rounded-full mx-auto mb-6"></div>
+            <h3 class="text-xl font-bold mb-6 text-slate-800 uppercase">Profil Murid</h3>
             <div class="space-y-4">
-                <input type="hidden" id="m-uid">
-                <input id="m-nfc" placeholder="UID Kad NFC" class="w-full bg-gray-50 border-0 p-4 rounded-2xl focus:ring-2 ring-blue-500 outline-none">
-                <input id="m-nama" placeholder="Nama Penuh Murid" class="w-full bg-gray-50 border-0 p-4 rounded-2xl focus:ring-2 ring-blue-500 outline-none uppercase font-bold">
+                <input id="m-nfc" placeholder="UID Kad NFC" class="w-full bg-slate-50 border p-4 rounded-xl outline-none font-mono text-sm focus:ring-2 ring-blue-500">
+                <input id="m-nama" placeholder="NAMA PENUH" class="w-full bg-slate-50 border p-4 rounded-xl outline-none font-bold uppercase focus:ring-2 ring-blue-500">
                 <div class="grid grid-cols-2 gap-4">
-                    <select id="m-tahun" class="bg-gray-50 p-4 rounded-2xl border-0 outline-none">
-                        <option value="1">Tahun 1</option><option value="2">Tahun 2</option>
-                        <option value="3">Tahun 3</option><option value="4">Tahun 4</option>
-                        <option value="5">Tahun 5</option><option value="6">Tahun 6</option>
+                    <select id="m-tahun" class="w-full bg-slate-50 border p-4 rounded-xl font-bold">
+                        <option value="1">Tahun 1</option><option value="2">Tahun 2</option><option value="3">Tahun 3</option>
+                        <option value="4">Tahun 4</option><option value="5">Tahun 5</option><option value="6">Tahun 6</option>
                     </select>
-                    <select id="m-kelas" class="bg-gray-50 p-4 rounded-2xl border-0 outline-none">
-                        <option value="Delima">Delima</option>
-                        <option value="Zamrud">Zamrud</option>
+                    <select id="m-kelas" class="w-full bg-slate-50 border p-4 rounded-xl font-bold">
+                        <option value="Delima">Delima</option><option value="Zamrud">Zamrud</option>
                     </select>
                 </div>
-                <label class="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
-                    <input type="checkbox" id="m-rmt" class="w-5 h-5 rounded border-gray-300">
-                    <span class="text-gray-700 font-semibold">Layak RMT</span>
+                <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border">
+                    <input type="checkbox" id="m-rmt" class="w-5 h-5 rounded border-slate-300">
+                    <span class="font-bold text-slate-700">Layak RMT</span>
                 </label>
-                <div class="flex gap-3 pt-4">
-                    <button onclick="tutupModal()" class="flex-1 p-4 text-gray-400 font-bold">Batal</button>
-                    <button onclick="simpanMurid()" class="flex-[2] bg-blue-600 text-white p-4 rounded-2xl font-bold shadow-lg shadow-blue-200">Simpan Data</button>
+                <div class="flex gap-4 pt-4">
+                    <button onclick="tutupModal()" class="flex-1 p-4 text-slate-400 font-bold">Batal</button>
+                    <button onclick="simpanMurid()" class="flex-[2] bg-blue-600 text-white p-4 rounded-xl font-bold">Simpan</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- KONFIGURASI FIREBASE (PASTE DATA ANDA) ---
-        const firebaseConfig = {
-            apiKey: "C7KjO2r8mrarXhoW9I4d8AuyvkNphjMGZ4Kaqef6",
-            databaseURL: "https://sistem-merit-sk-melekek-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        };
+        const firebaseConfig = { apiKey: "C7KjO2r8mrarXhoW9I4d8AuyvkNphjMGZ4Kaqef6", databaseURL: "https://sistem-merit-sk-melekek-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let senaraiMurid = [];
 
+        function initTahunFilters() {
+            const container = document.getElementById('tahun-filters');
+            for(let i=1; i<=6; i++) {
+                container.innerHTML += `<button onclick="paparTahun(${i})" class="px-5 py-2.5 bg-white text-slate-600 rounded-xl text-sm font-bold border whitespace-nowrap active:bg-slate-100">Thn ${i}</button>`;
+            }
+        }
+
         function fetchMurid() {
             db.ref('Sistem_Merit_SKM/murid').on('value', snapshot => {
                 senaraiMurid = [];
-                snapshot.forEach(child => {
-                    senaraiMurid.push({ uid: child.key, ...child.val() });
-                });
+                snapshot.forEach(child => { senaraiMurid.push({ uid: child.key, ...child.val() }); });
                 paparHome();
             });
         }
 
         function renderCards(data) {
             const container = document.getElementById('app-content');
-            if(data.length === 0) {
-                container.innerHTML = `<div class="text-center py-10"><p class="text-gray-400">Tiada rekod dijumpai.</p></div>`;
-                return;
-            }
-            
             container.innerHTML = data.map(m => `
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 card-murid flex justify-between items-center">
-                    <div onclick="editMurid('${m.uid}')" class="flex-1">
-                        <h4 class="font-bold text-gray-800 leading-tight">${m.nama}</h4>
-                        <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">
-                            ${m.tahun} ${m.kelas} ${m.isRMT ? '• <span class="text-yellow-600">RMT</span>' : ''}
-                        </p>
-                        <div class="mt-2 text-2xl font-black text-blue-600">${m.merit || 0} <span class="text-[10px] text-blue-300">Merit</span></div>
+                <div class="bg-white p-5 rounded-[24px] shadow-sm card-murid flex justify-between items-center">
+                    <div onclick="editMurid('${m.uid}')" class="flex-1 pr-4">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-50 text-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tight">T${m.tahun} ${m.kelas}</span>
+                            ${m.isRMT ? '<span class="bg-amber-100 text-amber-700 text-[9px] px-2 py-0.5 rounded-full font-bold italic">RMT</span>' : ''}
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-base leading-tight uppercase mb-1 truncate w-48">${m.nama}</h4>
+                        <div class="text-2xl font-black text-slate-900">${m.merit || 0} <span class="text-[10px] text-slate-400 font-bold uppercase">Merit</span></div>
                     </div>
-                    <div class="flex flex-col gap-2">
-                        <button onclick="ubahMerit('${m.uid}', 1)" class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl font-bold active:bg-blue-600 active:text-white">+</button>
-                        <button onclick="ubahMerit('${m.uid}', -1)" class="w-10 h-10 bg-red-50 text-red-600 rounded-xl font-bold active:bg-red-600 active:text-white">-</button>
+                    
+                    <div class="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border" id="ctrl-${m.uid}">
+                        <button onclick="confirmMerit('${m.uid}', -1)" class="w-12 h-12 bg-white text-red-500 rounded-xl font-bold shadow-sm border border-red-50 flex items-center justify-center active:scale-90">-</button>
+                        <button onclick="confirmMerit('${m.uid}', 1)" class="w-12 h-12 bg-white text-blue-600 rounded-xl font-bold shadow-sm border border-blue-50 flex items-center justify-center active:scale-90">+</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function paparHome() {
-            document.getElementById('view-title').innerText = "Semua Murid";
-            renderCards(senaraiMurid);
-        }
+        // FUNGSI PENGESAHAN (ANTI-TERTEKAN)
+        function confirmMerit(uid, nilai) {
+            const container = document.getElementById(`ctrl-${uid}`);
+            const originalHTML = container.innerHTML;
+            const colorClass = nilai > 0 ? 'bg-blue-600' : 'bg-red-600';
+            const label = nilai > 0 ? 'TAMBAH' : 'TOLAK';
 
-        function paparTahun(t) {
-            document.getElementById('view-title').innerText = "Tahun " + t;
-            renderCards(senaraiMurid.filter(m => m.tahun == t));
-        }
+            container.innerHTML = `
+                <button onclick="ubahMerit('${uid}', ${nilai})" class="confirm-anim h-12 px-6 ${colorClass} text-white rounded-xl font-black text-xs shadow-lg tracking-tighter">
+                    SAHKAN ${label}
+                </button>
+            `;
 
-        function tapisRMT() {
-            document.getElementById('view-title').innerText = "Murid RMT";
-            renderCards(senaraiMurid.filter(m => m.isRMT));
+            // Kembali ke asal selepas 3 saat jika tidak ditekan
+            setTimeout(() => {
+                const check = document.getElementById(`ctrl-${uid}`);
+                if (check && check.innerHTML.includes('SAHKAN')) {
+                    check.innerHTML = originalHTML;
+                }
+            }, 3000);
         }
 
         function ubahMerit(uid, n) {
@@ -164,9 +170,27 @@
             db.ref('Sistem_Merit_SKM/murid/' + uid).update({ merit: (m.merit || 0) + n });
         }
 
+        async function mulaScanNFC() {
+            if ('NDEFReader' in window) {
+                try {
+                    const ndef = new NDEFReader();
+                    await ndef.scan();
+                    alert("Sedia mengimbas... Dekatkan kad.");
+                    ndef.addEventListener("reading", ({ serialNumber }) => {
+                        let uid = serialNumber.replace(/:/g, "").toUpperCase();
+                        let m = senaraiMurid.find(x => x.uid === uid);
+                        if(m) { editMurid(uid); } else { bukaModalMurid(); document.getElementById('m-nfc').value = uid; }
+                    });
+                } catch (e) { alert("NFC Error: " + e); }
+            } else { alert("NFC Tidak Disokong"); }
+        }
+
+        function paparHome() { document.getElementById('view-title').innerText = "Semua Murid"; renderCards(senaraiMurid); }
+        function paparTahun(t) { document.getElementById('view-title').innerText = "Tahun " + t; renderCards(senaraiMurid.filter(m => m.tahun == t)); }
+        function tapisRMT() { document.getElementById('view-title').innerText = "Murid RMT"; renderCards(senaraiMurid.filter(m => m.isRMT)); }
+        
         function editMurid(uid) {
             let m = senaraiMurid.find(x => x.uid === uid);
-            document.getElementById('m-uid').value = m.uid;
             document.getElementById('m-nfc').value = m.uid;
             document.getElementById('m-nama').value = m.nama;
             document.getElementById('m-tahun').value = m.tahun;
@@ -176,30 +200,27 @@
         }
 
         function bukaModalMurid() {
-            document.getElementById('m-uid').value = "";
             document.getElementById('m-nfc').value = "";
             document.getElementById('m-nama').value = "";
             document.getElementById('modal-murid').classList.remove('hidden');
         }
 
-        function tutupModal() {
-            document.getElementById('modal-murid').classList.add('hidden');
-        }
+        function tutupModal() { document.getElementById('modal-murid').classList.add('hidden'); }
 
         function simpanMurid() {
             let uid = document.getElementById('m-nfc').value;
+            if(!uid) return;
             let data = {
                 nama: document.getElementById('m-nama').value.toUpperCase(),
                 tahun: parseInt(document.getElementById('m-tahun').value),
                 kelas: document.getElementById('m-kelas').value,
                 isRMT: document.getElementById('m-rmt').checked,
-                merit: 0
+                merit: senaraiMurid.find(x => x.uid === uid)?.merit || 0
             };
-            db.ref('Sistem_Merit_SKM/murid/' + uid).update(data).then(() => {
-                tutupModal();
-            });
+            db.ref('Sistem_Merit_SKM/murid/' + uid).update(data).then(() => tutupModal());
         }
 
+        initTahunFilters();
         fetchMurid();
     </script>
 </body>
