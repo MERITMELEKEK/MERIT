@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistem Pintar SK Melekek v23.3</title>
+    <title>Sistem Pintar SK Melekek v23.4</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { --primary: #4361ee; --success: #2ecc71; --danger: #ef476f; --dark: #2b2d42; --bg: #f8faff; --rmt: #ff9f43; --card: #ffffff; }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--dark); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--dark); -webkit-font-smoothing: antialiased; overflow-x: hidden; touch-action: pan-y; }
 
         .top-bar { background: linear-gradient(135deg, #4361ee, #7209b7); color: white; padding: 30px 20px 45px 20px; border-radius: 0 0 35px 35px; text-align: center; box-shadow: 0 10px 20px rgba(67, 97, 238, 0.15); }
         .top-bar h2 { margin: 0; font-weight: 700; }
@@ -22,18 +22,21 @@
         
         .grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .card-btn { background: var(--card); padding: 22px 15px; border-radius: 24px; text-align: center; font-weight: 700; color: var(--primary); box-shadow: 0 8px 15px rgba(0,0,0,0.03); cursor: pointer; transition: 0.3s; border: 1px solid rgba(0,0,0,0.02); -webkit-tap-highlight-color: transparent; position: relative; overflow: hidden; }
-        .card-btn:active { transform: scale(0.95); background: #f0f0f0; }
+        .card-btn:active { background: #f0f0f0; transform: scale(0.96); }
         .card-full { grid-column: span 2; display: flex; align-items: center; justify-content: center; gap: 12px; }
 
-        /* Visual Feedback untuk Tekan Lama */
+        /* Matikan sentuhan pada teks dalam butang supaya tidak ganggu koordinat */
+        .card-btn *, .btn-aksi *, .btn-tick * { pointer-events: none; }
+
         .card-btn.pressing::after { content: ''; position: absolute; bottom: 0; left: 0; height: 6px; background: var(--rmt); width: 0%; animation: progress 5s linear forwards; }
         @keyframes progress { from { width: 0%; } to { width: 100%; } }
 
         .view-section { display: none; }
         .murid-item { background: var(--card); padding: 20px; border-radius: 25px; margin-bottom: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.02); }
-        .btn-aksi { padding: 14px; border: none; border-radius: 15px; color: white; font-weight: 700; flex: 1; cursor: pointer; font-size: 0.85rem; touch-action: manipulation; }
-        .badge-skor { background: var(--dark); color: white; padding: 8px 15px; border-radius: 12px; font-weight: 800; }
+        .btn-aksi { padding: 14px; border: none; border-radius: 15px; color: white; font-weight: 700; flex: 1; cursor: pointer; font-size: 0.85rem; touch-action: manipulation; transition: 0.2s; }
+        .btn-aksi:active { transform: scale(0.92); opacity: 0.8; }
         
+        .badge-skor { background: var(--dark); color: white; padding: 8px 15px; border-radius: 12px; font-weight: 800; }
         .stats-banner { background: var(--dark); color: white; padding: 12px 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
 
         table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
@@ -54,7 +57,7 @@
 
 <div class="top-bar">
     <h2>SK MELEKEK</h2>
-    <p style="margin:5px 0 0 0; opacity:0.8; font-size:0.85rem;">Sistem Pengurusan Pintar v23.3</p>
+    <p style="margin:5px 0 0 0; opacity:0.8; font-size:0.85rem;">Sistem Pengurusan Pintar v23.4</p>
 </div>
 
 <div class="search-container">
@@ -70,7 +73,7 @@
             <div class="card-btn" style="color:var(--rmt)" onclick="bukaRMT()">🍲 HADIR RMT</div>
         </div>
         <div class="section-title">Merit Ikut Kelas (Hold 5s: Merit Pukal)</div>
-        <div class="grid-menu" id="gridKelas"></div>
+        <div id="gridKelas" class="grid-menu"></div>
         <div class="section-title">Pengurusan</div>
         <div class="card-btn card-full" onclick="bukaDaftar()">➕ DAFTAR MURID BARU</div>
     </div>
@@ -146,10 +149,34 @@
     
     let databaseMurid = [];
     let currentNfcUid = "";
-    let isScrolling = false;
     let curTahun = "", curKelas = "";
     let isRMTMode = false;
     let pressTimer;
+
+    // LOGIK ANTI-ACCIDENTAL TOUCH (BAIKPULIH)
+    let touchStartY = 0;
+    let isScrolling = false;
+
+    window.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+        isScrolling = false;
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+        let touchMoveY = e.touches[0].clientY;
+        if (Math.abs(touchMoveY - touchStartY) > 10) {
+            isScrolling = true;
+            cancelPress(document.querySelector('.pressing'));
+        }
+    }, { passive: true });
+
+    function bolehProses() {
+        if (isScrolling) {
+            isScrolling = false;
+            return false;
+        }
+        return true;
+    }
 
     // Build Grid Kelas
     const grid = document.getElementById('gridKelas');
@@ -159,7 +186,6 @@
             btn.className = 'card-btn';
             btn.innerText = `${t} ${k[0]}`;
             
-            // Event Listeners for Long Press
             btn.addEventListener('touchstart', (e) => startPress(e, t, k, btn));
             btn.addEventListener('touchend', (e) => endPress(e, t, k, btn));
             btn.addEventListener('mousedown', (e) => startPress(e, t, k, btn));
@@ -176,45 +202,38 @@
         pressTimer = setTimeout(() => {
             el.classList.remove('pressing');
             pukalMeritKustom(t, k);
-        }, 5000); // Trigger selepas 5 saat
+        }, 5000);
     }
 
     function endPress(e, t, k, el) {
         if(el.classList.contains('pressing')) {
             clearTimeout(pressTimer);
             el.classList.remove('pressing');
-            pilihKelas(t, k); // Klik biasa jika tidak cukup 5 saat
+            if(bolehProses()) pilihKelas(t, k); 
         }
     }
 
     function cancelPress(el) {
+        if(!el) return;
         clearTimeout(pressTimer);
         el.classList.remove('pressing');
     }
 
-    // FUNGSI BARU: Pukal Merit dengan Input Kustom
     async function pukalMeritKustom(t, k) {
         getar([100, 50, 100]);
-        const input = prompt(`KEMASKINI MERIT PUKAL (Tahun ${t} ${k})\n\nMasukkan jumlah markah:\n(Contoh: '10' untuk tambah, '-5' untuk tolak)`);
-        
-        if (input === null || input === "") return; // Batal jika kosong
-
+        const input = prompt(`KEMASKINI PUKAL (${t} ${k})\n\nMasukkan jumlah markah (cth: 10 atau -10):`);
+        if (!input) return;
         const pts = parseInt(input);
-        if (isNaN(pts)) return alert("Sila masukkan nombor sahaja!");
+        if (isNaN(pts)) return alert("Masukkan nombor sahaja.");
 
-        const aksi = pts >= 0 ? "TAMBAH" : "TOLAK";
-        if(confirm(`Sahkan untuk ${aksi} ${Math.abs(pts)} markah kepada SEMUA murid di kelas ${t} ${k}?`)) {
+        if(confirm(`Terapkan ${pts} markah kepada SEMUA murid kelas ini?`)) {
             const list = databaseMurid.filter(m => m.tahun == t && m.namaKelas == k);
-            if(list.length === 0) return alert("Tiada murid dalam kelas ini.");
-
             const promises = list.map(m => db.ref('pelajar/' + m.uid + '/markah').transaction(cur => (cur || 0) + pts));
             await Promise.all(promises);
             getar(200);
-            alert(`Berjaya! ${Math.abs(pts)} markah telah di${aksi.toLowerCase()}kan kepada ${list.length} murid.`);
         }
     }
 
-    // Sync Data
     db.ref('pelajar').on('value', snap => {
         const data = snap.val();
         databaseMurid = [];
@@ -264,12 +283,11 @@
     }
 
     function tukarMarkah(uid, pts) {
-        if(isScrolling) return;
+        if(!bolehProses()) return;
         getar(30);
         db.ref('pelajar/' + uid + '/markah').transaction(cur => (cur || 0) + pts);
     }
 
-    // Kehadiran RMT & KELAS
     function bukaKehadiran() { 
         isRMTMode = false;
         document.getElementById('menuFolder').style.display = 'none'; 
@@ -293,7 +311,6 @@
         if(!tkh) return;
         const selT = document.getElementById('selTahun').value;
         const selK = document.getElementById('selKelas').value;
-        
         const snap = await db.ref('kehadiran/' + tkh).once('value');
         const dataHadir = snap.val() || {};
         
@@ -303,10 +320,9 @@
         });
         
         list.sort((a,b) => a.nama.localeCompare(b.nama));
-        
         let countHadir = 0;
         let html = `<table>`;
-        if(list.length === 0) html += `<tr><td colspan="3" style="text-align:center; padding:30px; color:#aaa;">Tiada rekod ${isRMTMode ? 'RMT' : ''} untuk kelas ini.</td></tr>`;
+        if(list.length === 0) html += `<tr><td colspan="3" style="text-align:center; padding:30px; color:#aaa;">Tiada rekod.</td></tr>`;
 
         list.forEach((m, index) => {
             const isHadir = !!dataHadir[m.uid];
@@ -322,7 +338,7 @@
     }
 
     function simpanHadirPantas(uid, status) {
-        if(isScrolling) return;
+        if(!bolehProses()) return;
         const tkh = document.getElementById('tarikhHadir').value;
         if(!tkh) return;
         getar(30);
@@ -335,20 +351,18 @@
         if(!tkh) return;
         const snap = await db.ref('kehadiran/' + tkh).once('value');
         const dataHadir = snap.val() || {};
+        let count = 0;
         databaseMurid.forEach(m => {
             const btn = document.getElementById('btn-' + m.uid);
             if(btn) {
                 const isHadir = !!dataHadir[m.uid];
+                if(isHadir) count++;
                 btn.className = "btn-tick " + (isHadir ? 'btn-hadir' : 'btn-tidak');
                 btn.innerText = isHadir ? 'HADIR ✅' : 'TIADA ❌';
             }
         });
-        const allBtns = document.querySelectorAll('.btn-hadir').length;
-        const total = document.querySelectorAll('.btn-tick').length;
-        document.getElementById('statHadir').innerText = `Jumlah Hadir: ${allBtns} / ${total}`;
     }
 
-    // NFC & Management Functions
     function bukaDaftar() {
         document.getElementById('formTitle').innerText = "Daftar Murid Baru";
         document.getElementById('regUid').value = ""; document.getElementById('regUid').readOnly = false;
@@ -357,6 +371,7 @@
     }
 
     function bukaEdit(uid) {
+        if(!bolehProses()) return;
         const m = databaseMurid.find(x => x.uid === uid);
         if(!m) return;
         document.getElementById('formTitle').innerText = "Kemaskini Murid";
@@ -398,8 +413,8 @@
                         prosesQuickNFC(uid);
                     }
                 };
-            } catch(e) { alert("NFC Error: " + e); }
-        } else { alert("Guna Chrome Android."); }
+            } catch(e) { alert("Sila guna Chrome Android & Aktifkan NFC."); }
+        } else { alert("NFC tidak disokong pada pelayar ini."); }
     }
 
     function prosesQuickNFC(uid) {
@@ -423,7 +438,7 @@
         }
     }
 
-    function tukarMarkahNFC(pts) { tukarMarkah(currentNfcUid, pts); }
+    function tukarMarkahNFC(pts) { if(bolehProses()) tukarMarkah(currentNfcUid, pts); }
 
     function logikCarian(val) {
         if(val.trim().length > 0) {
@@ -439,8 +454,6 @@
     function tutupForm() { document.getElementById('formView').style.display = 'none'; }
     function tutupNfc() { document.getElementById('nfcPopup').style.display = 'none'; }
 
-    window.addEventListener('touchstart', () => isScrolling = false);
-    window.addEventListener('touchmove', () => { isScrolling = true; cancelPress(document.activeElement); });
 </script>
 </body>
 </html>
