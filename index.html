@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistem Pintar SK Melekek v23.8</title>
+    <title>Sistem Pintar SK Melekek v23.9</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --primary: #4361ee; --success: #2ecc71; --danger: #ef476f; --dark: #2b2d42; --bg: #f8faff; --rmt: #ff9f43; --card: #ffffff; }
+        :root { --primary: #4361ee; --success: #2ecc71; --danger: #ef476f; --dark: #2b2d42; --bg: #f8faff; --rmt: #ff9f43; --card: #ffffff; --warn: #f1c40f; }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--dark); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
         .top-bar { background: linear-gradient(135deg, #4361ee, #7209b7); color: white; padding: 30px 20px 45px 20px; border-radius: 0 0 35px 35px; text-align: center; box-shadow: 0 10px 20px rgba(67, 97, 238, 0.15); }
         .search-container { margin: -25px 20px 15px 20px; position: relative; z-index: 101; }
-        #cariUtama { width: 100%; padding: 18px 25px; border-radius: 20px; border: none; box-shadow: 0 15px 30px rgba(0,0,0,0.08); font-size: 1rem; outline: none; box-sizing: border-box; }
+        #cariUtama, .input-carian { width: 100%; padding: 18px 25px; border-radius: 20px; border: none; box-shadow: 0 15px 30px rgba(0,0,0,0.08); font-size: 1rem; outline: none; box-sizing: border-box; }
         .content { padding: 0 20px 100px 20px; }
         .section-title { font-size: 0.8rem; font-weight: 700; color: #a0a0a0; margin: 25px 0 12px 5px; text-transform: uppercase; letter-spacing: 1.2px; }
         .grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -22,16 +22,20 @@
         .murid-item { background: var(--card); padding: 20px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); border: 1px solid #eee; }
         .btn-aksi { padding: 14px; border: none; border-radius: 15px; color: white; font-weight: 700; flex: 1; cursor: pointer; font-size: 0.85rem; }
         .badge-skor { background: var(--dark); color: white; padding: 8px 15px; border-radius: 12px; font-weight: 800; }
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
-        .modal { background: white; width: 100%; max-width: 400px; border-radius: 35px; padding: 30px; text-align: center; animation: slideUp 0.4s ease-out; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 3000; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .modal { background: white; width: 100%; max-width: 400px; border-radius: 35px; padding: 30px; text-align: center; animation: slideUp 0.4s ease-out; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
         @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .score-big { font-size: 3rem; font-weight: 800; color: var(--primary); margin: 20px 0; }
         #formView { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; padding: 30px 20px; box-sizing: border-box; overflow-y: auto; }
-        input[type="text"], input[type="date"], select { width: 100%; padding: 16px; border-radius: 16px; border: 2px solid #eee; margin-bottom: 15px; box-sizing: border-box; font-family: inherit; }
+        input[type="text"], input[type="date"], select { width: 100%; padding: 16px; border-radius: 16px; border: 2px solid #eee; margin-bottom: 15px; box-sizing: border-box; font-family: inherit; font-size: 0.9rem; }
+        .stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.85rem; align-items: center; text-align: left;}
+        .stat-row:last-child { border-bottom: none; }
+        .stat-count { background: var(--danger); color: white; padding: 2px 8px; border-radius: 8px; font-weight: bold; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
+<!-- Popup Imbas Kad NFC Umum -->
 <div id="nfcPopup" class="overlay">
     <div class="modal">
         <div id="nfcIcon" style="font-size: 50px;">📡</div>
@@ -48,22 +52,58 @@
     </div>
 </div>
 
+<!-- Borang Rekod Salah Laku -->
+<div id="formSalahLaku" class="overlay" style="z-index: 4000;">
+    <div class="modal">
+        <div style="font-size: 40px; margin-bottom: 10px;">🚨</div>
+        <h3 id="slNamaMurid" style="color:var(--danger); margin-bottom: 5px;">Nama Murid</h3>
+        <p id="slKelasMurid" style="margin-top:0; color:#888; font-size: 0.85rem;">Tahun / Kelas</p>
+        <input type="hidden" id="slUid">
+        
+        <div style="text-align: left; margin-top: 20px;">
+            <label style="font-size: 0.8rem; font-weight: bold; color: #555;">Kategori Kesalahan</label>
+            <select id="slJenisKesalahan">
+                <option value="" disabled selected>-- Pilih Kesalahan --</option>
+                <option value="Mencuri / Merosakkan harta benda">Mencuri / Merosakkan harta benda</option>
+                <option value="Membuli / Bergaduh">Membuli / Bergaduh</option>
+                <option value="Rambut panjang / Berfesyen">Rambut panjang / Berfesyen</option>
+                <option value="Kuku panjang / Kebersihan diri">Kuku panjang / Kebersihan diri</option>
+                <option value="Pakaian tidak mematuhi peraturan">Pakaian tidak mematuhi peraturan sekolah</option>
+                <option value="Memakai barang kemas / Perhiasan">Memakai barang kemas / Perhiasan</option>
+                <option value="Berkeliaran di kawasan sekolah">Berkeliaran di kawasan sekolah</option>
+                <option value="Datang lewat ke sekolah">Datang lewat ke sekolah</option>
+                <option value="Ponteng kelas">Ponteng kelas</option>
+                <option value="Membuang sampah merata-rata">Membuang sampah merata-rata</option>
+                <option value="Ingkar arahan guru / Pengawas">Ingkar arahan guru / Pengawas</option>
+                <option value="Lain-lain kesalahan">Lain-lain kesalahan</option>
+            </select>
+            
+            <label style="font-size: 0.8rem; font-weight: bold; color: #555;">Catatan (Pilihan)</label>
+            <input type="text" id="slCatatan" placeholder="Cth: Main mercun di tandas...">
+        </div>
+        
+        <button class="btn-aksi" style="background:var(--danger); width:100%; margin-bottom:10px; margin-top:10px;" onclick="simpanSalahLaku()">REKOD & TOLAK -5 MERIT</button>
+        <button class="btn-aksi" style="background:#eee; color:var(--dark); width:100%;" onclick="tutupFormSalahLaku()">BATAL</button>
+    </div>
+</div>
+
 <div class="top-bar">
     <h2>SK MELEKEK</h2>
-    <p style="margin:0; opacity:0.8; font-size:0.8rem;">Sistem Pengurusan v23.8</p>
+    <p style="margin:0; opacity:0.8; font-size:0.8rem;">Sistem Pengurusan v23.9</p>
 </div>
 
 <div class="search-container">
-    <input type="text" id="cariUtama" placeholder="🔍 Cari nama murid..." oninput="logikCarian(this.value)">
+    <input type="text" id="cariUtama" placeholder="🔍 Cari nama murid (Merit Utama)..." oninput="logikCarian(this.value)">
 </div>
 
 <div class="content">
     <div id="menuFolder">
         <div class="section-title">Aksi Pantas</div>
         <div class="grid-menu">
-            <div class="card-btn card-full" style="background:var(--dark); color:white;" onclick="mulaScanNFC()">📡 IMBAS KAD NFC (GURU)</div>
+            <div class="card-btn card-full" style="background:var(--dark); color:white;" onclick="mulaScanNFC()">📡 IMBAS KAD NFC (MERIT)</div>
             <div class="card-btn" style="color:var(--success)" onclick="bukaKehadiran()">📅 KEHADIRAN</div>
             <div class="card-btn" style="color:var(--rmt)" onclick="bukaRMT()">🍲 KEHADIRAN RMT</div>
+            <div class="card-btn card-full" style="background:var(--danger); color:white;" onclick="bukaDisiplin()">🚨 REKOD SALAH LAKU</div>
         </div>
         <div class="section-title">Merit Ikut Kelas</div>
         <div id="gridKelas" class="grid-menu"></div>
@@ -71,6 +111,7 @@
         <div class="card-btn card-full" onclick="bukaDaftar()">➕ DAFTAR MURID BARU</div>
     </div>
 
+    <!-- View Senarai Kelas/Carian Utama -->
     <div id="senaraiView" class="view-section">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <button class="btn-aksi" style="background:var(--dark); max-width:50px; padding:10px;" onclick="kembali()">⬅️</button>
@@ -79,16 +120,13 @@
         <div id="muridContainer"></div>
     </div>
 
+    <!-- View Kehadiran -->
     <div id="kehadiranView" class="view-section">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <button class="btn-aksi" style="background:var(--dark); max-width:50px; padding:10px;" onclick="kembali()">⬅️</button>
             <h3 style="margin:0;">KEHADIRAN</h3>
         </div>
-        
-        <div id="statHadir" style="background:var(--dark); color:white; padding:15px; border-radius:20px; margin-bottom:15px; text-align:center; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
-            Sila tunggu...
-        </div>
-        
+        <div id="statHadir" style="background:var(--dark); color:white; padding:15px; border-radius:20px; margin-bottom:15px; text-align:center; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">Sila tunggu...</div>
         <input type="date" id="tarikhHadir" onchange="renderKehadiran()">
         <div style="display:flex; gap:10px; margin-bottom:15px;">
             <select id="selTahunHadir" onchange="renderKehadiran()">
@@ -103,21 +141,46 @@
         <div id="listKehadiranTable"></div>
     </div>
 
+    <!-- View Kehadiran RMT -->
     <div id="rmtView" class="view-section">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <button class="btn-aksi" style="background:var(--dark); max-width:50px; padding:10px;" onclick="kembali()">⬅️</button>
             <h3 style="margin:0;">PENERIMA RMT</h3>
         </div>
-        
-        <div id="statRMT" style="background:var(--rmt); color:white; padding:20px; border-radius:20px; margin-bottom:15px; text-align:center; box-shadow: 0 10px 20px rgba(255, 159, 67, 0.3);">
-            Sila tunggu...
-        </div>
-        
+        <div id="statRMT" style="background:var(--rmt); color:white; padding:20px; border-radius:20px; margin-bottom:15px; text-align:center; box-shadow: 0 10px 20px rgba(255, 159, 67, 0.3);">Sila tunggu...</div>
         <input type="date" id="tarikhRMT" onchange="renderRMT()">
         <div id="listRMTTable"></div>
     </div>
+
+    <!-- View Disiplin & Salah Laku -->
+    <div id="disiplinView" class="view-section">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <button class="btn-aksi" style="background:var(--dark); max-width:50px; padding:10px;" onclick="kembali()">⬅️</button>
+            <h3 style="margin:0; color:var(--danger)">DASHBOARD DISIPLIN</h3>
+        </div>
+        
+        <div class="card-btn card-full" style="background:var(--danger); color:white; margin-bottom: 20px; font-size:1.1rem; padding: 15px;" onclick="mulaScanDisiplin()">
+            📡 IMBAS KAD REKOD KESALAHAN
+        </div>
+        
+        <div style="position:relative;">
+            <input type="text" id="cariDisiplin" class="input-carian" placeholder="🔍 Cari murid untuk didenda..." oninput="carianDisiplin(this.value)" style="border: 2px solid var(--danger);">
+            <div id="hasilCarianDisiplin" style="background: white; border-radius: 15px; margin-top: 10px; max-height: 200px; overflow-y: auto;"></div>
+        </div>
+
+        <div class="section-title" style="color:var(--danger)">Statistik Kesalahan Keseluruhan</div>
+        <div style="background:white; padding:20px; border-radius:20px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); margin-bottom: 20px;" id="statKesalahanContainer">
+            <!-- Stats load here -->
+        </div>
+
+        <div class="section-title">Senarai Pelanggaran Terkini</div>
+        <div id="senaraiKesalahanContainer">
+            <!-- List loads here -->
+        </div>
+    </div>
 </div>
 
+<!-- Borang Daftar Murid -->
 <div id="formView">
     <h2 id="formTitle">Daftar Murid</h2>
     <input type="text" id="regUid" placeholder="UID KAD (Imbas di ESP32 dahulu)">
@@ -136,7 +199,6 @@
         <input type="checkbox" id="regRMT" style="width:25px; height:25px;"> 
         <label for="regRMT" style="font-weight:600; color:var(--rmt);">Murid ini Layak RMT</label>
     </div>
-    
     <button class="btn-aksi" style="background:var(--primary); width:100%;" onclick="simpanData()">SIMPAN REKOD</button>
     <button id="btnPadam" class="btn-aksi" style="background:var(--danger); width:100%; margin-top:10px; display:none;" onclick="padamMurid()">PADAM MURID</button>
     <button class="btn-aksi" style="background:#ccc; color:black; width:100%; margin-top:10px;" onclick="tutupForm()">BATAL</button>
@@ -154,6 +216,7 @@
     const db = firebase.database();
 
     let databaseMurid = [];
+    let databaseSalahLaku = [];
     let curTahun, curKelas, currentScanUid;
 
     // --- FUNGSI MASA MALAYSIA ---
@@ -164,7 +227,7 @@
         return myTime.toISOString().split('T')[0]; // Format: YYYY-MM-DD
     }
 
-    // --- FUNGSI PANGKALAN DATA (RANKING) ---
+    // --- FUNGSI PANGKALAN DATA (RANKING & MERIT) ---
     async function kemaskiniRanking(tahun) {
         const snap = await db.ref('pelajar').orderByChild('tahun').equalTo(tahun.toString()).once('value');
         const data = snap.val();
@@ -188,7 +251,7 @@
         await kemaskiniRanking(m.tahun);
     }
 
-    // --- FUNGSI NFC (TELEFON) ---
+    // --- FUNGSI NFC UMUM (MERIT KEHADIRAN) ---
     async function mulaScanNFC() {
         if (!('NDEFReader' in window)) return alert("Browser/Telefon anda tidak menyokong NFC.");
         document.getElementById('nfcPopup').style.display = 'flex';
@@ -212,7 +275,6 @@
                     document.getElementById('nfcSkorDisplay').innerText = m.markah || 0;
                     document.getElementById('nfcScoreBox').style.display = 'block';
                     
-                    // Automatik rekod kehadiran hari ini apabila cikgu scan kad
                     db.ref('kehadiran/' + getTarikhHariIni() + '/' + uid).set(true);
                 } else {
                     document.getElementById('nfcIcon').innerText = "⚠️";
@@ -243,8 +305,11 @@
         document.querySelectorAll('.view-section').forEach(v => v.style.display = 'none');
         document.getElementById('menuFolder').style.display = 'block';
         document.getElementById('cariUtama').value = "";
+        document.getElementById('cariDisiplin').value = "";
+        document.getElementById('hasilCarianDisiplin').innerHTML = "";
     }
 
+    // --- DAFTAR MURID ---
     function bukaDaftar() {
         document.getElementById('regUid').value = "";
         document.getElementById('regNama').value = "";
@@ -252,16 +317,48 @@
         document.getElementById('btnPadam').style.display = 'none';
         document.getElementById('formView').style.display = 'block';
         
-        // Cek jika ada UID baru dikesan oleh ESP32
         db.ref('temp_pendaftaran/uid_baru').once('value', snap => {
             if(snap.exists() && snap.val() !== "") {
                 document.getElementById('regUid').value = snap.val();
-                db.ref('temp_pendaftaran/uid_baru').remove(); // Padam selepas ambil
+                db.ref('temp_pendaftaran/uid_baru').remove(); 
             }
         });
     }
 
-    // --- FUNGSI KEHADIRAN SEKOLAH ---
+    async function simpanData() {
+        const uid = document.getElementById('regUid').value.toUpperCase().trim();
+        const nama = document.getElementById('regNama').value.toUpperCase().trim();
+        const thn = document.getElementById('regTahun').value;
+        const kls = document.getElementById('regKelas').value;
+        const isRMT = document.getElementById('regRMT').checked;
+
+        if(!uid || !nama) return alert("Sila isikan UID dan Nama!");
+        
+        await db.ref('pelajar/' + uid).update({
+            nama: nama, 
+            tahun: thn,
+            namaKelas: kls,
+            rmt: isRMT
+        });
+        
+        const snap = await db.ref('pelajar/' + uid + '/markah').once('value');
+        if(!snap.exists()) await db.ref('pelajar/' + uid + '/markah').set(0);
+        
+        kemaskiniRanking(thn);
+        alert("Berjaya disimpan!");
+        tutupForm();
+    }
+
+    async function padamMurid() {
+        const uid = document.getElementById('regUid').value;
+        if(confirm("Anda pasti mahu padam rekod murid ini? (Markah juga akan hilang)")) {
+            await db.ref('pelajar/' + uid).remove();
+            alert("Telah dipadam.");
+            tutupForm();
+        }
+    }
+
+    // --- FUNGSI KEHADIRAN & RMT ---
     function bukaKehadiran() {
         document.querySelectorAll('.view-section').forEach(v => v.style.display = 'none');
         document.getElementById('menuFolder').style.display = 'none';
@@ -282,11 +379,9 @@
         stat.innerText = "Memuat data...";
         container.innerHTML = "";
 
-        // Ambil data kehadiran dari Firebase berdasarkan tarikh
         const snapHadir = await db.ref('kehadiran/' + tarikh).once('value');
         const dataHadir = snapHadir.val() || {};
 
-        // Tapis murid mengikut kelas yang dipilih
         let listMurid = databaseMurid.filter(m => m.tahun == thn && m.namaKelas == kls);
         listMurid.sort((a,b) => a.nama.localeCompare(b.nama)); 
 
@@ -294,7 +389,6 @@
         listMurid.forEach(m => {
             const isHadir = dataHadir[m.uid] === true;
             if(isHadir) hadirCount++;
-            
             const statusBg = isHadir ? 'var(--success)' : '#fee2e2';
             const statusColor = isHadir ? 'white' : 'var(--danger)';
             const statusTxt = isHadir ? 'HADIR' : 'TIDAK HADIR';
@@ -315,7 +409,6 @@
                           <div style="font-size:2.5rem; font-weight:800;">${hadirCount} / ${listMurid.length}</div>`;
     }
 
-    // --- FUNGSI KEHADIRAN RMT ---
     function bukaRMT() {
         document.querySelectorAll('.view-section').forEach(v => v.style.display = 'none');
         document.getElementById('menuFolder').style.display = 'none';
@@ -330,23 +423,19 @@
         const tarikh = document.getElementById('tarikhRMT').value;
         const stat = document.getElementById('statRMT');
         const container = document.getElementById('listRMTTable');
-
         stat.innerText = "Memuat data...";
         container.innerHTML = "";
 
-        // Ambil data kehadiran dari Firebase berdasarkan tarikh
         const snapHadir = await db.ref('kehadiran/' + tarikh).once('value');
         const dataHadir = snapHadir.val() || {};
 
-        // Tapis HANYA murid yang layak RMT
         let listRMT = databaseMurid.filter(m => m.rmt === true || m.rmt === "true"); 
-        listRMT.sort((a,b) => a.tahun - b.tahun || a.nama.localeCompare(b.nama)); // Susun ikut tahun, kemudian nama
+        listRMT.sort((a,b) => a.tahun - b.tahun || a.nama.localeCompare(b.nama));
 
         let hadirCount = 0;
         listRMT.forEach(m => {
             const isHadir = dataHadir[m.uid] === true;
             if(isHadir) hadirCount++;
-            
             const statusBg = isHadir ? 'var(--success)' : '#fee2e2';
             const statusColor = isHadir ? 'white' : 'var(--danger)';
             const statusTxt = isHadir ? 'HADIR RMT' : 'TIDAK HADIR';
@@ -367,42 +456,157 @@
                           <div style="font-size:2.5rem; font-weight:800;">${hadirCount} <span style="font-size:1rem;">/ ${listRMT.length} Orang</span></div>`;
     }
 
-    // --- FUNGSI SIMPAN & PADAM MURID ---
-    async function simpanData() {
-        const uid = document.getElementById('regUid').value.toUpperCase().trim();
-        const nama = document.getElementById('regNama').value.toUpperCase().trim();
-        const thn = document.getElementById('regTahun').value;
-        const kls = document.getElementById('regKelas').value;
-        const isRMT = document.getElementById('regRMT').checked;
-
-        if(!uid || !nama) return alert("Sila isikan UID dan Nama!");
-        
-        await db.ref('pelajar/' + uid).update({
-            nama: nama, 
-            tahun: thn,
-            namaKelas: kls,
-            rmt: isRMT
-        });
-        
-        // Pastikan markah bermula 0 jika murid baru
-        const snap = await db.ref('pelajar/' + uid + '/markah').once('value');
-        if(!snap.exists()) await db.ref('pelajar/' + uid + '/markah').set(0);
-        
-        kemaskiniRanking(thn);
-        alert("Berjaya disimpan!");
-        tutupForm();
+    // --- MODUL BARU: REKOD SALAH LAKU ---
+    function bukaDisiplin() {
+        document.querySelectorAll('.view-section').forEach(v => v.style.display = 'none');
+        document.getElementById('menuFolder').style.display = 'none';
+        document.getElementById('disiplinView').style.display = 'block';
+        renderDisiplinStats();
     }
 
-    async function padamMurid() {
-        const uid = document.getElementById('regUid').value;
-        if(confirm("Anda pasti mahu padam rekod murid ini? (Markah juga akan hilang)")) {
-            await db.ref('pelajar/' + uid).remove();
-            alert("Telah dipadam.");
-            tutupForm();
+    function carianDisiplin(val) {
+        const container = document.getElementById('hasilCarianDisiplin');
+        container.innerHTML = "";
+        if(!val) return;
+
+        const valUpper = val.toUpperCase();
+        let list = databaseMurid.filter(m => m.nama.includes(valUpper));
+        
+        list.slice(0, 5).forEach(m => {
+            container.innerHTML += `
+            <div style="padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: bold; font-size: 0.85rem;">${m.nama}</div>
+                    <div style="font-size: 0.7rem; color: #888;">Tahun ${m.tahun} ${m.namaKelas}</div>
+                </div>
+                <button class="btn-aksi" style="background:var(--danger); max-width: 80px; padding: 8px; font-size:0.75rem;" onclick="bukaFormSalahLaku('${m.uid}')">REKOD</button>
+            </div>`;
+        });
+
+        if(list.length === 0) container.innerHTML = `<div style="padding:15px; text-align:center; font-size:0.8rem; color:#888;">Tiada murid dijumpai.</div>`;
+    }
+
+    async function mulaScanDisiplin() {
+        if (!('NDEFReader' in window)) return alert("Telefon anda tidak menyokong NFC. Sila guna kotak carian di atas.");
+        
+        try {
+            const reader = new NDEFReader();
+            await reader.scan();
+            alert("NFC Sedia: Dekatkan kad pesalah pada belakang telefon...");
+            
+            reader.onreading = event => {
+                const uid = event.serialNumber.replace(/:/g, "").toUpperCase();
+                bukaFormSalahLaku(uid);
+            };
+        } catch(e) {
+            alert("Sila pastikan NFC dihidupkan.");
         }
     }
 
-    // --- INISIALISASI GRID & DATA ---
+    function bukaFormSalahLaku(uid) {
+        const m = databaseMurid.find(x => x.uid === uid);
+        if(!m) {
+            alert("KAD TIDAK DIKENALI. Sila daftar murid ini dahulu.");
+            return;
+        }
+
+        document.getElementById('slUid').value = m.uid;
+        document.getElementById('slNamaMurid').innerText = m.nama;
+        document.getElementById('slKelasMurid').innerText = `Tahun ${m.tahun} ${m.namaKelas}`;
+        document.getElementById('slJenisKesalahan').value = "";
+        document.getElementById('slCatatan').value = "";
+        
+        document.getElementById('formSalahLaku').style.display = 'flex';
+        document.getElementById('cariDisiplin').value = "";
+        document.getElementById('hasilCarianDisiplin').innerHTML = "";
+    }
+
+    function tutupFormSalahLaku() {
+        document.getElementById('formSalahLaku').style.display = 'none';
+    }
+
+    async function simpanSalahLaku() {
+        const uid = document.getElementById('slUid').value;
+        const murid = databaseMurid.find(x => x.uid === uid);
+        const kesalahan = document.getElementById('slJenisKesalahan').value;
+        const catatan = document.getElementById('slCatatan').value;
+        const tarikhMasa = new Date().toLocaleString("en-MY", {timeZone: "Asia/Kuala_Lumpur"});
+
+        if(!kesalahan) return alert("Sila pilih jenis kesalahan!");
+
+        // Rekod Kesalahan
+        await db.ref('salahLaku').push({
+            uid: uid,
+            nama: murid.nama,
+            tahun: murid.tahun,
+            kelas: murid.namaKelas,
+            kesalahan: kesalahan,
+            catatan: catatan,
+            tarikh: getTarikhHariIni(),
+            masa: tarikhMasa
+        });
+
+        // Potong -5 Merit automatik
+        await tukarMarkah(uid, -5);
+
+        alert(`Rekod salah laku disimpan. -5 Merit dipotong untuk ${murid.nama}.`);
+        tutupFormSalahLaku();
+    }
+
+    function renderDisiplinStats() {
+        const statContainer = document.getElementById('statKesalahanContainer');
+        const listContainer = document.getElementById('senaraiKesalahanContainer');
+        
+        // Kira kekerapan kesalahan
+        let kiraanStats = {};
+        let rekodTerkini = [...databaseSalahLaku].reverse(); // Yang terbaru di atas
+
+        databaseSalahLaku.forEach(rekod => {
+            if(kiraanStats[rekod.kesalahan]) kiraanStats[rekod.kesalahan]++;
+            else kiraanStats[rekod.kesalahan] = 1;
+        });
+
+        // Render Stats
+        if(Object.keys(kiraanStats).length === 0) {
+            statContainer.innerHTML = `<div style="text-align:center; color:#888;">Tiada rekod kesalahan setakat ini. Syabas!</div>`;
+        } else {
+            statContainer.innerHTML = "";
+            let keys = Object.keys(kiraanStats).sort((a,b) => kiraanStats[b] - kiraanStats[a]); // Sort paling tinggi
+            keys.forEach(k => {
+                statContainer.innerHTML += `
+                <div class="stat-row">
+                    <span style="flex:1; padding-right: 10px;">${k}</span>
+                    <span class="stat-count">${kiraanStats[k]} kes</span>
+                </div>`;
+            });
+        }
+
+        // Render List Terkini
+        listContainer.innerHTML = "";
+        if(rekodTerkini.length === 0) {
+            listContainer.innerHTML = `<div style="text-align:center; padding:30px; color:#888;">Tiada pelanggaran direkodkan.</div>`;
+        } else {
+            rekodTerkini.slice(0, 20).forEach(r => { // Tunjuk 20 rekod terakhir
+                listContainer.innerHTML += `
+                <div class="murid-item" style="border-left: 4px solid var(--danger);">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
+                        <div>
+                            <b style="font-size:0.9rem;">${r.nama}</b>
+                            <div style="font-size:0.75rem; color:#888;">Tahun ${r.tahun} ${r.kelas} | ${r.masa}</div>
+                        </div>
+                        <span class="badge-skor" style="background:var(--danger); font-size:0.7rem;">-5 MERIT</span>
+                    </div>
+                    <div style="background:#fff5f5; color:var(--danger); padding:8px 12px; border-radius:10px; font-size:0.8rem; font-weight:600; margin-top:10px;">
+                        ⚠️ ${r.kesalahan}
+                        ${r.catatan ? `<div style="font-weight:normal; font-size:0.75rem; color:#666; margin-top:4px;">Catatan: ${r.catatan}</div>` : ''}
+                    </div>
+                </div>`;
+            });
+        }
+    }
+
+
+    // --- INISIALISASI ASAS ---
     const grid = document.getElementById('gridKelas');
     for(let t=1; t<=6; t++) {
         ['DELIMA', 'ZAMRUD'].forEach(k => {
@@ -420,18 +624,26 @@
         });
     }
 
-    // Listen data Firebase realtime
+    // Listener Realtime Firebase - Pelajar
     db.ref('pelajar').on('value', snap => {
         const data = snap.val();
         databaseMurid = [];
         for(let key in data) {
             databaseMurid.push({uid: key, ...data[key]});
         }
-        
-        // Refresh paparan jika user sedang tengok sesuatu
         if(document.getElementById('senaraiView').style.display === 'block') reRenderSenarai();
         if(document.getElementById('kehadiranView').style.display === 'block') renderKehadiran();
         if(document.getElementById('rmtView').style.display === 'block') renderRMT();
+    });
+
+    // Listener Realtime Firebase - Salah Laku
+    db.ref('salahLaku').on('value', snap => {
+        const data = snap.val();
+        databaseSalahLaku = [];
+        for(let key in data) {
+            databaseSalahLaku.push({id: key, ...data[key]});
+        }
+        if(document.getElementById('disiplinView').style.display === 'block') renderDisiplinStats();
     });
 
     function logikCarian(val) {
@@ -440,7 +652,7 @@
             document.getElementById('menuFolder').style.display = 'none';
             document.getElementById('senaraiView').style.display = 'block';
             document.getElementById('labelKelas').innerText = "HASIL CARIAN";
-            curTahun = null; // override
+            curTahun = null; 
         } else {
             kembali();
         }
@@ -481,7 +693,6 @@
         }
     }
 
-    // Fungsi tambahan: Edit pelajar dari senarai
     window.editMurid = function(uid) {
         const m = databaseMurid.find(x => x.uid === uid);
         if(!m) return;
